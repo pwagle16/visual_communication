@@ -1,17 +1,24 @@
-"""Validated default theme: categorical palette, chrome colors, mark specs.
+"""Themes (categorical palettes), chrome colors, and mark specs.
 
-Colors and mark specs are the reference palette from the dataviz design
-method (see project README) -- an eight-hue categorical order validated for
-colorblind-safe adjacent pairs, plus fixed chrome tokens for chart chrome
-(gridlines, axes, ink). Swap the values below to re-theme; the chart
-functions in bar.py/line.py/scatter.py/pie.py consume them by role, not by
-raw hex, so nothing else needs to change.
+The chart functions consume colors by role, never by raw hex, so a theme is
+just a list of categorical hues swapped in behind them. Two themes ship:
+
+- "default": the reference palette from the dataviz design method -- an
+  eight-hue order validated for colorblind-safe adjacent pairs and contrast.
+- "pastel": a soft pink/blue palette. It deliberately does NOT pass the
+  accessibility validator (pastels are too light, too low-chroma, and too
+  low-contrast); see PALETTE_NOTES below. Pick it for looks, and lean on the
+  secondary encoding the library always ships -- a legend for 2+ series,
+  surface gaps between bars, markers/end-labels on lines -- to keep it legible.
+
+Select a theme globally with `set_theme("pastel")`, or per chart via the
+`theme=` argument every chart function accepts.
 """
 
 # Fixed hue order -- never cycled. Assigned to series by position, in the
-# order series are given. Bar/line tolerate all 8 slots (adjacent-pair
+# order series are given. Bar/line tolerate all slots (adjacent-pair
 # validation); scatter caps at 3 (all-pairs validation) -- see scatter.py.
-CATEGORICAL = [
+_DEFAULT = [
     "#2a78d6",  # 1 blue
     "#eb6834",  # 2 orange
     "#1baf7a",  # 3 aqua
@@ -21,6 +28,61 @@ CATEGORICAL = [
     "#4a3aa7",  # 7 violet
     "#e34948",  # 8 red
 ]
+
+# Soft pink/blue pastels. Ordered to spread the most-similar hues apart, but
+# still fails every color check -- kept for aesthetics by explicit choice.
+_PASTEL = [
+    "#f4a6c6",  # 1 rose pink
+    "#a9c9f5",  # 2 powder blue
+    "#e3aede",  # 3 orchid
+    "#bfe0f2",  # 4 sky blue
+    "#f7c5d6",  # 5 blush pink
+    "#c7bef0",  # 6 periwinkle
+    "#f9cdab",  # 7 peach
+    "#a9e6d2",  # 8 mint
+]
+
+THEMES = {
+    "default": _DEFAULT,
+    "pastel": _PASTEL,
+}
+
+# What each theme trades away, so callers can make an informed choice.
+PALETTE_NOTES = {
+    "default": "Passes the dataviz validator: colorblind-safe adjacent pairs "
+    "(worst CVD dE 9.1), normal-vision floor clear.",
+    "pastel": "NOT accessibility-validated -- fails the lightness band, chroma "
+    "floor, CVD separation (worst adjacent dE ~3), and contrast checks. Pastels "
+    "on a near-white surface are inherently low-contrast; relies on the "
+    "always-on legend, bar gaps, and line markers to stay readable.",
+}
+
+_active_theme = "default"
+
+
+def set_theme(name):
+    """Set the active theme used by charts that don't pass an explicit `theme=`."""
+    if name not in THEMES:
+        raise ValueError(f"unknown theme '{name}'. Available: {', '.join(THEMES)}.")
+    global _active_theme
+    _active_theme = name
+
+
+def active_theme():
+    """Name of the currently active theme."""
+    return _active_theme
+
+
+def palette(theme=None):
+    """Return the categorical hue list for `theme` (or the active theme)."""
+    name = theme if theme is not None else _active_theme
+    if name not in THEMES:
+        raise ValueError(f"unknown theme '{name}'. Available: {', '.join(THEMES)}.")
+    return THEMES[name]
+
+
+# Backwards-compatible alias for the default palette.
+CATEGORICAL = _DEFAULT
 
 # Series count where scatter's all-pairs (not just adjacent-pair) CVD
 # validation still holds -- see references/palette.md in the dataviz skill.

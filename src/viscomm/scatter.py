@@ -1,5 +1,5 @@
 from ._mpl import add_legend, apply_base_style, new_axes, set_axis_labels, style_title
-from .theme import CATEGORICAL, CHROME, MARK, SCATTER_MAX_SERIES, require_series_capacity
+from .theme import CHROME, MARK, SCATTER_MAX_SERIES, palette, require_series_capacity
 
 
 def scatter(
@@ -11,11 +11,13 @@ def scatter(
     subtitle=None,
     xlabel=None,
     ylabel=None,
+    theme=None,
     ax=None,
     figsize=(8, 5),
 ):
     """A scatter plot. Pass `x`/`y` for a single group, or `series` (dict of
-    name -> (x_values, y_values)) for multiple groups.
+    name -> (x_values, y_values)) for multiple groups. `theme` overrides the
+    active theme for this chart only.
 
     Capped at 3 groups: scatter shows every pair of points at once, so the
     palette's all-pairs colorblind validation (not just adjacent-pair) is
@@ -27,6 +29,7 @@ def scatter(
     if series is None:
         series = {"": (x, y)}
 
+    colors = palette(theme)
     require_series_capacity(len(series), max_series=SCATTER_MAX_SERIES, chart_name="scatter")
 
     if ax is None:
@@ -41,7 +44,7 @@ def scatter(
         if len(xs) != len(ys):
             raise ValueError(f"series '{name}' has mismatched x ({len(xs)}) and y ({len(ys)}) lengths.")
         ax.scatter(
-            xs, ys, s=marker_area, color=CATEGORICAL[i],
+            xs, ys, s=marker_area, color=colors[i],
             edgecolors=CHROME["surface"], linewidths=MARK["marker_ring_width"],
             label=name or None, zorder=3,
         )

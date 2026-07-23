@@ -1,5 +1,5 @@
 from ._mpl import add_legend, apply_base_style, new_axes, set_axis_labels, style_title
-from .theme import CATEGORICAL, CHROME, MARK, require_series_capacity
+from .theme import CHROME, MARK, palette, require_series_capacity
 
 # Past this many converging series, end-labels collide; fall back to the
 # legend alone rather than stack labels on top of each other.
@@ -16,18 +16,21 @@ def line(
     xlabel=None,
     ylabel=None,
     direct_labels=True,
+    theme=None,
     ax=None,
     figsize=(8, 5),
 ):
     """A line chart. Pass `y` for a single series, or `series` (dict of
-    name -> y-values) for multiple lines sharing the same x-axis."""
+    name -> y-values) for multiple lines sharing the same x-axis.
+    `theme` overrides the active theme for this chart only."""
     if (y is None) == (series is None):
         raise ValueError("Pass exactly one of `y` or `series`.")
 
     if series is None:
         series = {"": y}
 
-    require_series_capacity(len(series), max_series=len(CATEGORICAL), chart_name="line")
+    colors = palette(theme)
+    require_series_capacity(len(series), max_series=len(colors), chart_name="line")
 
     for name, ys in series.items():
         if len(ys) != len(x):
@@ -41,7 +44,7 @@ def line(
     show_direct_labels = direct_labels and len(series) <= DIRECT_LABEL_MAX_SERIES
 
     for i, (name, ys) in enumerate(series.items()):
-        color = CATEGORICAL[i]
+        color = colors[i]
         ax.plot(
             x, ys, color=color, linewidth=MARK["line_width"],
             solid_capstyle="round", solid_joinstyle="round",

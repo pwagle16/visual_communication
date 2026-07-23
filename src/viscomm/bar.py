@@ -1,7 +1,7 @@
 import numpy as np
 
 from ._mpl import add_legend, apply_base_style, new_axes, set_axis_labels, style_title
-from .theme import CATEGORICAL, MARK, require_series_capacity
+from .theme import MARK, palette, require_series_capacity
 
 
 def bar(
@@ -14,6 +14,7 @@ def bar(
     subtitle=None,
     xlabel=None,
     ylabel=None,
+    theme=None,
     ax=None,
     figsize=(8, 5),
 ):
@@ -21,6 +22,7 @@ def bar(
 
     Pass either `values` (a single series) or `series` (a dict mapping
     series name -> list of values, one grouped bar cluster per category).
+    `theme` overrides the active theme for this chart only.
     """
     if (values is None) == (series is None):
         raise ValueError("Pass exactly one of `values` or `series`.")
@@ -28,7 +30,8 @@ def bar(
     if series is None:
         series = {"": values}
 
-    require_series_capacity(len(series), max_series=len(CATEGORICAL), chart_name="bar")
+    colors = palette(theme)
+    require_series_capacity(len(series), max_series=len(colors), chart_name="bar")
 
     n_categories = len(categories)
     n_series = len(series)
@@ -55,9 +58,9 @@ def bar(
     for i, (name, vals) in enumerate(series.items()):
         offset = (i - (n_series - 1) / 2) * pitch
         if horizontal:
-            ax.barh(x + offset, vals, height=bar_width, color=CATEGORICAL[i], label=name or None, zorder=3)
+            ax.barh(x + offset, vals, height=bar_width, color=colors[i], label=name or None, zorder=3)
         else:
-            ax.bar(x + offset, vals, width=bar_width, color=CATEGORICAL[i], label=name or None, zorder=3)
+            ax.bar(x + offset, vals, width=bar_width, color=colors[i], label=name or None, zorder=3)
 
     ticks_setter = ax.set_yticks if horizontal else ax.set_xticks
     labels_setter = ax.set_yticklabels if horizontal else ax.set_xticklabels

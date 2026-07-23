@@ -1,20 +1,22 @@
 from ._mpl import new_axes, style_title
-from .theme import CATEGORICAL, CHROME, MARK, contrast_ink, require_series_capacity
+from .theme import CHROME, MARK, contrast_ink, palette, require_series_capacity
 
 
-def pie(labels, values, *, title=None, subtitle=None, ax=None, figsize=(6, 6)):
-    """A pie chart with direct-labeled, percentage-annotated wedges."""
+def pie(labels, values, *, title=None, subtitle=None, theme=None, ax=None, figsize=(6, 6)):
+    """A pie chart with direct-labeled, percentage-annotated wedges.
+    `theme` overrides the active theme for this chart only."""
     if len(labels) != len(values):
         raise ValueError(f"got {len(labels)} labels but {len(values)} values.")
 
-    require_series_capacity(len(labels), max_series=len(CATEGORICAL), chart_name="pie")
+    theme_colors = palette(theme)
+    require_series_capacity(len(labels), max_series=len(theme_colors), chart_name="pie")
 
     if ax is None:
         fig, ax = new_axes(figsize)
     else:
         fig = ax.figure
 
-    colors = CATEGORICAL[: len(labels)]
+    colors = theme_colors[: len(labels)]
     _wedges, _texts, autotexts = ax.pie(
         values,
         labels=labels,

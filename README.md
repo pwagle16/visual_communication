@@ -32,6 +32,29 @@ customizing with plain matplotlib calls, or lay several charts out with
 
 Run `examples/basic_usage.py` to generate a sample PNG for each chart type.
 
+## Themes
+
+Two categorical palettes ship. Switch globally, or override per chart:
+
+```python
+vc.set_theme("pastel")            # applies to every chart from now on
+vc.bar(cats, values=vals)         # ...uses pastel
+
+vc.bar(cats, values=vals, theme="default")   # override one chart only
+```
+
+- **`default`** -- the built-in palette, validated for colorblind-safe
+  adjacent pairs and contrast. Use this unless you have a reason not to.
+- **`pastel`** -- a soft pink/blue palette. It is **not**
+  accessibility-validated: pastels are too light, too low-chroma, and
+  too low-contrast, so it fails the colorblind-separation and contrast
+  checks. It stays readable only because the library always ships
+  secondary encoding (a legend for 2+ series, surface gaps between bars,
+  markers and end-labels on lines) -- identity never rests on color alone.
+  `viscomm.theme.PALETTE_NOTES` spells out what each theme trades off.
+
+Run `examples/pastel_theme.py` for a full dashboard in the pastel theme.
+
 ## Design principles
 
 The styling follows a fixed procedure rather than per-chart taste calls:
