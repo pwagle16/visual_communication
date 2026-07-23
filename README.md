@@ -32,6 +32,32 @@ customizing with plain matplotlib calls, or lay several charts out with
 
 Run `examples/basic_usage.py` to generate a sample PNG for each chart type.
 
+## Sample datasets
+
+The `viscomm.datasets` module ships ready-to-plot synthetic data (a
+fictional coffee company, "Brewhaus") so you have something to build
+visuals on immediately. Every loader is deterministic and returns a
+namedtuple whose fields line up with a chart's arguments:
+
+```python
+import viscomm as vc
+from viscomm import datasets
+
+d = datasets.monthly_active_users()
+vc.line(d.x, series=d.series, title=d.title, ylabel=d.ylabel)
+```
+
+| Loader | Chart it fits | What it is |
+|---|---|---|
+| `monthly_active_users()` | line | users (K) by platform over 12 months |
+| `quarterly_revenue_by_region()` | bar | revenue ($M) by region, 2024 vs 2025 |
+| `spend_vs_signups()` | scatter | spend vs signups across 3 channels |
+| `traffic_by_channel()` | pie | traffic share by acquisition channel |
+
+`examples/from_dataset.py` renders one of each. To use the data outside
+Python, `datasets.export_csv("data")` (or `python examples/generate_data.py`)
+writes each as a tidy CSV; the committed `data/` folder already has them.
+
 ## Themes
 
 Two categorical palettes ship. Switch globally, or override per chart:
