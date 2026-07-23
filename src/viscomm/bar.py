@@ -42,11 +42,18 @@ def bar(
         fig = ax.figure
 
     x = np.arange(n_categories)
-    slot_width = 0.8  # leftover 0.2 of the slot stays air, per bar spec
-    bar_width = min(MARK["bar_max_width_frac"], slot_width / n_series)
+    # The cluster fills 80% of each unit-wide category slot; the remaining 20%
+    # is air between neighbouring categories. `pitch` is the center-to-center
+    # spacing of bars within a cluster; each bar is drawn a hair narrower than
+    # the pitch so a thin surface-color gap separates adjacent bars (the design
+    # spec separates touching marks with a gap, never a drawn border).
+    cluster_width = 0.8
+    pitch = cluster_width / n_series
+    gap = 0.12 * pitch if n_series > 1 else 0.0
+    bar_width = min(MARK["bar_max_width_frac"], pitch - gap)
 
     for i, (name, vals) in enumerate(series.items()):
-        offset = (i - (n_series - 1) / 2) * bar_width
+        offset = (i - (n_series - 1) / 2) * pitch
         if horizontal:
             ax.barh(x + offset, vals, height=bar_width, color=CATEGORICAL[i], label=name or None, zorder=3)
         else:

@@ -54,9 +54,10 @@ The styling follows a fixed procedure rather than per-chart taste calls:
   plotted; a one-swatch legend box just restates it.
 - **Fixed mark specs, not per-chart choices**: 2px lines, round joins;
   markers >= 8px with a surface-color ring so they stay legible over a
-  line; bars capped at 60% of their slot so neighbors keep visible air
-  between them; hairline (1px) gridlines a step off the surface color,
-  never dashed.
+  line; a cluster of grouped bars fills 80% of its category slot with a
+  thin surface-color gap between adjacent bars (touching marks are
+  separated by a gap, never a drawn border); hairline (1px) gridlines a
+  step off the surface color, never dashed.
 - **Text never wears the series color.** Axis labels, ticks, and legend
   text use fixed ink tokens (primary/secondary/muted); identity comes from
   the colored mark next to the text, never from coloring the text itself.
