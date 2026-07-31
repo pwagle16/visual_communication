@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "simple_eda"
-version = "0.1.0"
+version = "0.2.0"
 description = "The simplest possible exploratory-data-analysis helpers for pandas DataFrames"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -12,6 +12,7 @@ license = "MIT"
 authors = [{ name = "pwagle16" }]
 dependencies = [
     "pandas>=1.5",
+    "matplotlib>=3.7",
 ]
 
 [project.optional-dependencies]

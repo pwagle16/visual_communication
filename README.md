@@ -3,8 +3,8 @@
 The simplest possible exploratory-data-analysis helpers for pandas DataFrames.
 
 - **Simple API** — flat, top-level functions. No classes to learn.
-- **Boring names** — `summarize`, `missing`, `numeric_columns`.
-- **Pandas in, plain objects out** — dicts, lists, ints, strings, and pandas Series.
+- **Boring names** — `summarize`, `missing`, `numeric_columns`, `plot_missing`, ...
+- **Pandas in, plain objects out** — dicts, lists, ints, strings, pandas Series, and PNG chart files.
 
 ## Install
 
@@ -35,6 +35,16 @@ print(eda.missing(df))
 # dtype: int64
 ```
 
+### Charts
+
+Each plotting function draws one chart, saves it to a PNG, and returns the path:
+
+```python
+eda.plot_missing(df, "missing.png")        # bar chart of missing values
+eda.plot_histogram(df, "age", "age.png")   # one numeric column
+eda.plot_numeric(df, "numeric.png")        # a histogram per numeric column
+```
+
 Or run it against the bundled dataset:
 
 ```bash
@@ -48,8 +58,11 @@ python examples/basic_usage.py
 | `summarize(df)` | `dict` | `rows`, `columns`, and column `names`. |
 | `missing(df)` | `pandas.Series` | Count of missing values per column. |
 | `numeric_columns(df)` | `list` | Names of the numeric columns. |
+| `plot_missing(df, path)` | `str` | Bar chart of missing values → PNG path. |
+| `plot_histogram(df, column, path)` | `str` | Histogram of one column → PNG path. |
+| `plot_numeric(df, path)` | `str` | A histogram per numeric column → PNG path. |
 
-All three accept a pandas `DataFrame` and raise `TypeError` on anything else.
+Every function accepts a pandas `DataFrame` and raises `TypeError` on anything else.
 
 ## Development
 
