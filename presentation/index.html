@@ -1,0 +1,411 @@
+<title>Gender Bias in LLM Hiring — Japan</title>
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --ink:#0c111e;          /* deep ground */
+    --ink-2:#121a2c;        /* surface */
+    --paper:#f4efe4;        /* warm white text */
+    --paper-dim:#c8cdd8;
+    --muted:#6f7a90;        /* hue-biased neutral */
+    --line:#26304a;
+    --crimson:#e23c46;      /* Japan / setup */
+    --rose:#ef7d97;         /* female / conflict */
+    --steel:#5f9de0;        /* male */
+    --green:#3fc99b;        /* resolved */
+    --amber:#f2b03a;        /* warning */
+    --shadow:0 30px 80px -30px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(140% 100% at 50% -10%, #16203a 0%, var(--ink) 55%);
+    color:var(--paper);
+    font-family:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+
+  /* ============ DECK / SLIDES ============ */
+  .deck{position:fixed;inset:0}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:clamp(28px,6vh,80px);
+    opacity:0;visibility:hidden;
+    transform:scale(.985);
+    transition:opacity .55s ease, transform .55s ease, visibility .55s;
+    text-align:center;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:scale(1)}
+
+  /* chapter eyebrow */
+  .eyebrow{
+    display:flex;align-items:center;gap:.7em;
+    font-size:clamp(11px,1.5vw,15px);letter-spacing:.42em;
+    text-transform:uppercase;color:var(--muted);font-weight:600;
+    margin-bottom:clamp(24px,5vh,52px);
+  }
+  .eyebrow i{display:block;width:34px;height:2px;background:currentColor;opacity:.6}
+  .c-set{color:var(--crimson)}
+  .c-con{color:var(--rose)}
+  .c-res{color:var(--green)}
+
+  /* giant numerals */
+  .huge{
+    font-weight:800;letter-spacing:-.04em;line-height:.9;
+    font-size:clamp(72px,17vw,240px);
+  }
+  .kicker{font-size:clamp(13px,1.9vw,20px);letter-spacing:.3em;text-transform:uppercase;color:var(--paper-dim);font-weight:600}
+
+  /* ============ SLIDE 1 — TITLE ============ */
+  .title-glyphs{display:flex;align-items:center;gap:clamp(14px,3vw,40px);margin-bottom:clamp(26px,5vh,48px)}
+  .glyph{
+    font-size:clamp(84px,15vw,190px);line-height:1;font-weight:400;
+  }
+  .glyph.f{color:var(--rose)}
+  .glyph.m{color:var(--steel)}
+  .vs{font-size:clamp(20px,3vw,34px);color:var(--muted);letter-spacing:.1em}
+  .resume-card{
+    position:absolute;width:clamp(120px,16vw,200px);height:clamp(150px,20vw,250px);
+    border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#141d33,#0e1526);
+    opacity:.14;filter:blur(.4px);z-index:-1;
+  }
+  h1.title{
+    font-size:clamp(26px,4.6vw,60px);font-weight:800;letter-spacing:-.02em;
+    line-height:1.04;text-wrap:balance;max-width:16ch;
+  }
+  h1.title b{color:var(--crimson);font-weight:800}
+  .sub{margin-top:clamp(16px,3vh,26px);color:var(--muted);letter-spacing:.32em;text-transform:uppercase;font-size:clamp(11px,1.5vw,15px)}
+
+  /* ============ ICONS ============ */
+  svg.icon{width:clamp(90px,13vw,150px);height:clamp(90px,13vw,150px);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .flow{display:flex;align-items:center;gap:clamp(20px,4vw,54px)}
+  .arrow{color:var(--muted);width:clamp(40px,6vw,70px);height:auto;stroke:currentColor;stroke-width:1.5;fill:none}
+
+  /* Japan pivot */
+  .pivot{display:flex;align-items:center;gap:clamp(24px,5vw,70px)}
+  .globe{color:var(--muted)}
+  .hino{width:clamp(120px,18vw,230px);height:clamp(80px,12vw,153px);border-radius:12px;background:#f4efe4;position:relative;box-shadow:var(--shadow)}
+  .hino::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;aspect-ratio:1;border-radius:50%;background:var(--crimson)}
+
+  /* ============ SCALE (stat grid) ============ */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,4vw,64px);align-items:end}
+  .stat .n{font-weight:800;letter-spacing:-.03em;line-height:.9;font-size:clamp(40px,7.5vw,104px)}
+  .stat .l{margin-top:.7em;color:var(--muted);letter-spacing:.24em;text-transform:uppercase;font-size:clamp(10px,1.2vw,13px);font-weight:600}
+  .stat:nth-child(1) .n{color:var(--crimson)}
+  .stat:nth-child(2) .n{color:var(--paper)}
+  .stat:nth-child(3) .n{color:var(--paper)}
+  .stat:nth-child(4) .n{color:var(--paper)}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr);gap:36px 28px}}
+
+  /* ============ COUNTERFACTUAL ============ */
+  .cf{display:flex;align-items:stretch;gap:clamp(26px,5vw,80px)}
+  .doc{
+    width:clamp(150px,20vw,240px);border:1px solid var(--line);border-radius:12px;
+    background:linear-gradient(180deg,#141d33,#0d1424);padding:clamp(16px,2vw,26px);
+    display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow);
+  }
+  .doc .name{height:16px;border-radius:5px;width:70%}
+  .doc.f .name{background:var(--rose)}
+  .doc.m .name{background:var(--steel)}
+  .doc .bar{height:9px;border-radius:5px;background:var(--line)}
+  .doc .bar:nth-child(3){width:100%}
+  .doc .bar:nth-child(4){width:88%}
+  .doc .bar:nth-child(5){width:94%}
+  .doc .bar:nth-child(6){width:60%}
+  .doc .tag{margin-top:auto;font-size:clamp(30px,4vw,52px);line-height:1;text-align:center}
+  .doc.f .tag{color:var(--rose)}
+  .doc.m .tag{color:var(--steel)}
+  .cf-eq{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted)}
+  .cf-eq .op{font-size:clamp(30px,4vw,48px);font-weight:300}
+  .cf-eq .word{font-size:clamp(10px,1.2vw,13px);letter-spacing:.28em;text-transform:uppercase}
+
+  /* ============ CHART ============ */
+  .chart-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(18px,3vh,34px);width:min(92vw,940px)}
+  .chart{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(12px,2.4vw,34px);
+    align-items:end;width:100%;height:clamp(210px,42vh,400px);
+    border-bottom:2px solid var(--line);padding-bottom:0;position:relative;
+  }
+  .zero{position:absolute;left:-8px;right:-8px;bottom:-2px;height:2px;background:var(--line)}
+  .col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:12px}
+  .bar-track{width:100%;max-width:96px;display:flex;align-items:flex-end;height:100%}
+  .bar{
+    width:100%;border-radius:8px 8px 0 0;height:0;
+    background:linear-gradient(180deg,var(--rose),#c85a74);
+    transition:height .9s cubic-bezier(.16,1,.3,1);position:relative;
+  }
+  .bar .val{
+    position:absolute;top:-1.9em;left:0;right:0;text-align:center;
+    font-size:clamp(11px,1.5vw,16px);font-weight:700;color:var(--paper);
+    opacity:0;transition:opacity .5s .5s;
+  }
+  .active .bar .val{opacity:1}
+  .col .name{color:var(--paper-dim);font-size:clamp(10px,1.2vw,14px);letter-spacing:.04em;font-weight:600;min-height:2.4em;display:flex;align-items:center;text-align:center}
+  /* green (resolved) variant */
+  .chart.green .bar{background:linear-gradient(180deg,var(--green),#2f9e7c)}
+  .chart .bar.ns{opacity:.4}
+  /* headline over chart */
+  .chart-head{display:flex;align-items:center;gap:.6em;font-size:clamp(18px,3vw,34px);font-weight:800;letter-spacing:-.01em}
+  .chart-head .mark{font-size:1.2em}
+  .chart-head.bad .mark{color:var(--crimson)}
+  .chart-head.good .mark{color:var(--green)}
+  .chart-note{color:var(--muted);letter-spacing:.24em;text-transform:uppercase;font-size:clamp(10px,1.3vw,13px);font-weight:600}
+
+  /* intervention badge */
+  .interv{display:flex;align-items:center;gap:14px;padding:12px 22px;border:1px solid var(--line);border-radius:100px;background:var(--ink-2)}
+  .interv .ic{width:24px;height:24px;stroke:var(--paper-dim);stroke-width:1.6;fill:none}
+  .interv .txt{font-size:clamp(12px,1.6vw,17px);letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+
+  /* ============ REFUSAL ============ */
+  .refuse{display:flex;flex-direction:column;align-items:center;gap:clamp(18px,3vh,30px)}
+  .donut{position:relative;width:clamp(180px,30vw,320px);aspect-ratio:1}
+  .donut svg{transform:rotate(-90deg);width:100%;height:100%}
+  .donut .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em}
+  .donut .center .p{font-size:clamp(44px,8vw,92px);font-weight:800;color:var(--amber);letter-spacing:-.03em;line-height:1}
+  .warn-badge{display:flex;align-items:center;gap:12px;color:var(--amber)}
+  .warn-badge svg{width:30px;height:30px;stroke:currentColor;stroke-width:1.6;fill:none}
+  .warn-badge b{font-family:ui-monospace,monospace;font-size:clamp(13px,1.7vw,18px);letter-spacing:.1em;color:var(--paper)}
+
+  /* ============ CLOSING ============ */
+  .close-flow{display:flex;align-items:center;gap:clamp(20px,4vw,56px);flex-wrap:wrap;justify-content:center}
+  .pill{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:150px}
+  .pill .big{font-size:clamp(46px,7vw,90px);line-height:1}
+  .pill .lab{font-size:clamp(10px,1.3vw,14px);letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .pill.name .big{color:var(--rose)}
+  .pill.redact .big{color:var(--green)}
+  .thesis{margin-top:clamp(20px,4vh,42px);font-size:clamp(18px,3vw,34px);font-weight:800;letter-spacing:-.01em;text-wrap:balance;max-width:20ch}
+  .thesis em{color:var(--rose);font-style:normal}
+  .thesis b{color:var(--green);font-weight:800}
+
+  /* ============ CHROME: progress + nav ============ */
+  .rail{position:fixed;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.06);z-index:20}
+  .rail .fill{height:100%;width:0;background:var(--crimson);transition:width .5s ease,background .5s ease}
+  .dots{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:20}
+  .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .35s;cursor:pointer}
+  .dot.on{background:var(--paper);transform:scale(1.25)}
+  .counter{position:fixed;top:24px;right:30px;font-family:ui-monospace,monospace;font-size:13px;color:var(--muted);letter-spacing:.15em;z-index:20}
+  .counter b{color:var(--paper)}
+  .hint{position:fixed;bottom:20px;right:26px;font-size:11px;color:var(--muted);letter-spacing:.12em;z-index:20;opacity:.7}
+  .nav-zone{position:fixed;top:0;bottom:0;width:22%;z-index:15;cursor:pointer}
+  .nav-zone.prev{left:0}.nav-zone.next{right:0;width:78%}
+
+  @media(prefers-reduced-motion:reduce){
+    .slide,.bar,.rail .fill{transition:none!important}
+  }
+</style>
+
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide active" data-chap="set">
+    <div class="resume-card" style="left:18%;top:22%;transform:rotate(-8deg)"></div>
+    <div class="resume-card" style="right:18%;bottom:20%;transform:rotate(7deg)"></div>
+    <div class="title-glyphs">
+      <span class="glyph f">&#9792;</span>
+      <span class="vs">vs</span>
+      <span class="glyph m">&#9794;</span>
+    </div>
+    <h1 class="title">Gender bias when <b>AI</b> screens résumés</h1>
+    <div class="sub">Japanese hiring &middot; 5 models</div>
+  </section>
+
+  <!-- 2 · AI SCREENS -->
+  <section class="slide" data-chap="set">
+    <div class="eyebrow c-set"><i></i>The setup<i></i></div>
+    <div class="flow">
+      <svg class="icon" viewBox="0 0 64 64" stroke="#c8cdd8"><rect x="14" y="6" width="36" height="52" rx="4"/><line x1="22" y1="18" x2="42" y2="18"/><line x1="22" y1="26" x2="42" y2="26"/><line x1="22" y1="34" x2="36" y2="34"/><line x1="22" y1="42" x2="40" y2="42"/></svg>
+      <svg class="arrow" viewBox="0 0 60 24"><line x1="2" y1="12" x2="52" y2="12"/><polyline points="42,4 54,12 42,20"/></svg>
+      <svg class="icon" viewBox="0 0 64 64" stroke="var(--crimson)"><rect x="16" y="16" width="32" height="32" rx="5"/><line x1="24" y1="8" x2="24" y2="16"/><line x1="32" y1="8" x2="32" y2="16"/><line x1="40" y1="8" x2="40" y2="16"/><line x1="24" y1="48" x2="24" y2="56"/><line x1="32" y1="48" x2="32" y2="56"/><line x1="40" y1="48" x2="40" y2="56"/><line x1="8" y1="24" x2="16" y2="24"/><line x1="8" y1="32" x2="16" y2="32"/><line x1="8" y1="40" x2="16" y2="40"/><line x1="48" y1="24" x2="56" y2="24"/><line x1="48" y1="32" x2="56" y2="32"/><line x1="48" y1="40" x2="56" y2="40"/><circle cx="32" cy="32" r="7"/></svg>
+    </div>
+    <div class="kicker" style="margin-top:clamp(30px,6vh,60px)">LLMs now rank candidates</div>
+  </section>
+
+  <!-- 3 · WEST → JAPAN -->
+  <section class="slide" data-chap="set">
+    <div class="eyebrow c-set"><i></i>The gap<i></i></div>
+    <div class="pivot">
+      <svg class="icon globe" viewBox="0 0 64 64" stroke="var(--muted)"><circle cx="32" cy="32" r="26"/><ellipse cx="32" cy="32" rx="12" ry="26"/><line x1="6" y1="32" x2="58" y2="32"/><line x1="10" y1="19" x2="54" y2="19"/><line x1="10" y1="45" x2="54" y2="45"/></svg>
+      <svg class="arrow" viewBox="0 0 60 24"><line x1="2" y1="12" x2="52" y2="12"/><polyline points="42,4 54,12 42,20"/></svg>
+      <div class="hino"></div>
+    </div>
+    <div class="kicker" style="margin-top:clamp(30px,6vh,60px)">Western studies &rarr; untested in Japan</div>
+  </section>
+
+  <!-- 4 · SCALE -->
+  <section class="slide" data-chap="set">
+    <div class="eyebrow c-set"><i></i>The experiment<i></i></div>
+    <div class="stats">
+      <div class="stat"><div class="n mono">43,200</div><div class="l">API calls</div></div>
+      <div class="stat"><div class="n mono">5</div><div class="l">LLMs</div></div>
+      <div class="stat"><div class="n mono">60</div><div class="l">Résumés</div></div>
+      <div class="stat"><div class="n mono">12</div><div class="l">Name pairs</div></div>
+    </div>
+  </section>
+
+  <!-- 5 · COUNTERFACTUAL -->
+  <section class="slide" data-chap="con">
+    <div class="eyebrow c-con"><i></i>The method<i></i></div>
+    <div class="cf">
+      <div class="doc f"><span class="name"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="tag">&#9792;</span></div>
+      <div class="cf-eq"><span class="op">=</span><span class="word">same<br>résumé</span></div>
+      <div class="doc m"><span class="name"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="tag">&#9794;</span></div>
+    </div>
+    <div class="kicker" style="margin-top:clamp(28px,5vh,52px)">Only the name changes</div>
+  </section>
+
+  <!-- 6 · FINDING (bias) -->
+  <section class="slide" data-chap="con">
+    <div class="eyebrow c-con"><i></i>The finding<i></i></div>
+    <div class="chart-wrap">
+      <div class="chart-head bad"><span class="mark">&#9792;</span><span>Female names scored higher &mdash; every model</span></div>
+      <div class="chart" data-set="baseline">
+        <span class="zero"></span>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:85%"><span class="val">.38</span></div></div><div class="name">GPT&#8209;4o</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:76%"><span class="val">.34</span></div></div><div class="name">Claude</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:69%"><span class="val">.31</span></div></div><div class="name">Gemini</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:34%"><span class="val">.15</span></div></div><div class="name">DeepSeek</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:16%"><span class="val">.07</span></div></div><div class="name">Llama</div></div>
+      </div>
+      <div class="chart-note">Bias toward identical female candidates &middot; effect size</div>
+    </div>
+  </section>
+
+  <!-- 7 · FIX 1: PROMPT (fails) -->
+  <section class="slide" data-chap="res">
+    <div class="eyebrow c-res"><i></i>Fix &#8544;<i></i></div>
+    <div class="chart-wrap">
+      <div class="interv"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/></svg><span class="txt">&ldquo;Ignore gender&rdquo;</span></div>
+      <div class="chart" data-set="prompt">
+        <span class="zero"></span>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:64%"></div></div><div class="name">GPT&#8209;4o</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:75%"></div></div><div class="name">Claude</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:54%"></div></div><div class="name">Gemini</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:18%"></div></div><div class="name">DeepSeek</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:28%"></div></div><div class="name">Llama</div></div>
+      </div>
+      <div class="chart-head bad" style="font-size:clamp(16px,2.4vw,26px)"><span class="mark">&#10007;</span><span>Bias unchanged</span></div>
+    </div>
+  </section>
+
+  <!-- 8 · FIX 2: REDACT (works) -->
+  <section class="slide" data-chap="res">
+    <div class="eyebrow c-res"><i></i>Fix &#8545;<i></i></div>
+    <div class="chart-wrap">
+      <div class="interv"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="txt">Hide the name</span></div>
+      <div class="chart green" data-set="redact">
+        <span class="zero"></span>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:4%"></div></div><div class="name">GPT&#8209;4o*</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:3%"></div></div><div class="name">Claude</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:2%"></div></div><div class="name">Gemini</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:5%"></div></div><div class="name">DeepSeek</div></div>
+        <div class="col"><div class="bar-track"><div class="bar" style="--h:3%"></div></div><div class="name">Llama</div></div>
+      </div>
+      <div class="chart-head good" style="font-size:clamp(16px,2.4vw,26px)"><span class="mark">&#10003;</span><span>Bias &rarr; zero</span></div>
+    </div>
+  </section>
+
+  <!-- 9 · THE CATCH -->
+  <section class="slide" data-chap="res">
+    <div class="eyebrow c-res"><i></i>The catch<i></i></div>
+    <div class="refuse">
+      <div class="donut">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" stroke="#26304a" stroke-width="14" fill="none"/>
+          <circle id="refArc" cx="60" cy="60" r="52" stroke="var(--amber)" stroke-width="14" fill="none"
+                   stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                   style="transition:stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1)"/>
+        </svg>
+        <div class="center"><span class="p mono">42%</span></div>
+      </div>
+      <div class="warn-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><line x1="12" y1="10" x2="12" y2="15"/><circle cx="12" cy="18" r=".6" fill="currentColor"/></svg>
+        <b>GPT&#8209;4o refuses redacted résumés</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · CLOSING -->
+  <section class="slide" data-chap="res">
+    <div class="eyebrow c-res"><i></i>The takeaway<i></i></div>
+    <div class="close-flow">
+      <div class="pill name"><span class="big">&#9792;</span><span class="lab">The name<br>is the bias</span></div>
+      <svg class="arrow" viewBox="0 0 60 24" style="width:clamp(44px,6vw,74px)"><line x1="2" y1="12" x2="52" y2="12"/><polyline points="42,4 54,12 42,20"/></svg>
+      <div class="pill redact"><span class="big">&#10003;</span><span class="lab">Redact it<br>&rarr; fair</span></div>
+    </div>
+    <div class="thesis">Remove the <em>name</em>, remove the bias &mdash; <b>if</b> the model plays along.</div>
+  </section>
+
+</div>
+
+<!-- CHROME -->
+<div class="counter"><b id="cNow">1</b> / <span id="cTot">10</span></div>
+<div class="hint">&larr; &rarr; &middot; space</div>
+<div class="dots" id="dots"></div>
+<div class="rail"><div class="fill" id="fill"></div></div>
+<div class="nav-zone prev" id="zPrev"></div>
+<div class="nav-zone next" id="zNext"></div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0, N=slides.length;
+  var chapColor={set:'var(--crimson)',con:'var(--rose)',res:'var(--green)'};
+  var fill=document.getElementById('fill');
+  var cNow=document.getElementById('cNow');
+  document.getElementById('cTot').textContent=N;
+
+  // build dots
+  var dots=document.getElementById('dots');
+  slides.forEach(function(s,idx){
+    var d=document.createElement('span');d.className='dot';
+    d.addEventListener('click',function(){go(idx)});
+    dots.appendChild(d);
+  });
+  var dotEls=[].slice.call(dots.children);
+
+  function playBars(slide){
+    var bars=slide.querySelectorAll('.bar[style*="--h"]');
+    bars.forEach(function(b){ b.style.height='0'; });
+    // force reflow then set target
+    void slide.offsetWidth;
+    bars.forEach(function(b){
+      var h=getComputedStyle(b).getPropertyValue('--h');
+      b.style.height=h;
+    });
+    var arc=slide.querySelector('#refArc');
+    if(arc){ arc.style.strokeDashoffset='326.7'; void arc.offsetWidth; arc.style.strokeDashoffset=String(326.7*(1-0.42)); }
+  }
+
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));
+    slides[i].classList.remove('active');
+    i=n;
+    var s=slides[i];
+    s.classList.add('active');
+    var chap=s.getAttribute('data-chap');
+    fill.style.width=((i+1)/N*100)+'%';
+    fill.style.background=chapColor[chap];
+    cNow.textContent=i+1;
+    dotEls.forEach(function(d,idx){d.classList.toggle('on',idx===i)});
+    playBars(s);
+  }
+  function next(){go(i+1)} function prev(){go(i-1)}
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home'){go(0)} else if(e.key==='End'){go(N-1)}
+  });
+  document.getElementById('zNext').addEventListener('click',next);
+  document.getElementById('zPrev').addEventListener('click',prev);
+
+  // init
+  fill.style.width=(1/N*100)+'%';
+  fill.style.background=chapColor.set;
+  dotEls[0].classList.add('on');
+  playBars(slides[0]);
+})();
+</script>

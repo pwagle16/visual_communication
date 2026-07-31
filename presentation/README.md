@@ -1,0 +1,24 @@
+# Gender Bias in LLM Hiring — 2-min visual deck
+
+A near-wordless, self-contained slide deck summarizing *Gender Bias in LLM
+Hiring Decisions: Evidence from a Japanese Context and Evaluation of
+Mitigation Strategies* (arXiv:2606.18649).
+
+## Open it
+
+Open `index.html` in any browser. No build step, no dependencies — one file.
+
+- **Navigate:** `→` / `←` / `space`, or click the right/left edge of the screen, or the dots.
+- 10 slides, designed for **1:30–2:00**. Narration in [`SCRIPT.md`](./SCRIPT.md).
+
+## The arc (setup → conflict → resolution)
+
+1–4 · **Setup** — AI screens résumés; Western studies ignore Japan; the experiment's scale.
+5–6 · **Conflict** — identical résumés, only the name changes → every model favors the female name.
+7–10 · **Resolution** — "ignore gender" fails; hiding the name works; but GPT-4o refuses 42% of redacted résumés.
+
+## Design
+
+Single dark visual world. Color encodes the narrative: crimson (Japan / setup),
+rose vs. steel (female / male), green (bias eliminated), amber (the deployment
+catch). Numbers and symbols do the talking — no paragraphs on the slides.
