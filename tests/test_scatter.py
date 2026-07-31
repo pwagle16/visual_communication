@@ -1,7 +1,8 @@
 import pytest
 
 import viscomm as vc
-from viscomm.theme import SCATTER_MAX_SERIES
+
+SCATTER_MAX_SERIES = 3
 
 
 def test_single_group_no_legend():

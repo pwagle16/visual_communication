@@ -1,7 +1,7 @@
 import pytest
 
 import viscomm as vc
-from viscomm.theme import CATEGORICAL
+from viscomm import CATEGORICAL
 
 
 def test_single_series_line_no_legend():

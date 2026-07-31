@@ -1,7 +1,7 @@
 import pytest
 
 import viscomm as vc
-from viscomm.theme import CATEGORICAL
+from viscomm import CATEGORICAL
 
 
 def test_pie_wedge_count_matches_labels():

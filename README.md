@@ -3,7 +3,8 @@
 A small, opinionated Python charting library. Four core chart types --
 bar, line, scatter, pie -- built on matplotlib, with an accessible,
 validated color system and consistent styling baked in so you don't have
-to hand-tune each chart.
+to hand-tune each chart. The whole library is a single ~220-line module
+(`src/viscomm/core.py`).
 
 ## Install
 
@@ -26,60 +27,34 @@ ax = vc.bar(
 ax.figure.savefig("revenue.png", dpi=150)
 ```
 
-Every chart function returns a standard matplotlib `Axes`, so you can keep
-customizing with plain matplotlib calls, or lay several charts out with
-`ax.figure` / `plt.subplots` as usual.
-
-Run `examples/basic_usage.py` to generate a sample PNG for each chart type.
-
-## Sample datasets
-
-The `viscomm.datasets` module ships ready-to-plot synthetic data (a
-fictional coffee company, "Brewhaus") so you have something to build
-visuals on immediately. Every loader is deterministic and returns a
-namedtuple whose fields line up with a chart's arguments:
+Every chart function takes either a single series (`values=` / `y=`) or a
+`series={name: data}` dict for multiple series, and returns a standard
+matplotlib `Axes` -- so you can keep customizing with plain matplotlib, or
+lay several charts out on one figure by passing `ax=` from `plt.subplots`.
 
 ```python
+import matplotlib.pyplot as plt
 import viscomm as vc
-from viscomm import datasets
 
-d = datasets.monthly_active_users()
-vc.line(d.x, series=d.series, title=d.title, ylabel=d.ylabel)
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+vc.line(range(2019, 2026), series={"North": [10, 12, 15, 14, 18, 22, 25]}, ax=axes[0])
+vc.pie(["Direct", "Organic", "Referral", "Paid"], [35, 30, 20, 15], ax=axes[1])
 ```
 
-| Loader | Chart it fits | What it is |
+Run `examples/basic_usage.py` to generate a sample PNG for each chart type
+into `examples/output/`.
+
+## API
+
+| Function | Single series | Multiple series |
 |---|---|---|
-| `monthly_active_users()` | line | users (K) by platform over 12 months |
-| `quarterly_revenue_by_region()` | bar | revenue ($M) by region, 2024 vs 2025 |
-| `spend_vs_signups()` | scatter | spend vs signups across 3 channels |
-| `traffic_by_channel()` | pie | traffic share by acquisition channel |
+| `vc.bar(categories, values=...)` | `values=[...]` | `series={name: [...]}` (grouped), `horizontal=True` |
+| `vc.line(x, y=...)` | `y=[...]` | `series={name: [...]}` |
+| `vc.scatter(x, y=...)` | `x=[...], y=[...]` | `series={name: (xs, ys)}` (max 3) |
+| `vc.pie(labels, values)` | — | — |
 
-`examples/from_dataset.py` renders one of each. To use the data outside
-Python, `datasets.export_csv("data")` (or `python examples/generate_data.py`)
-writes each as a tidy CSV; the committed `data/` folder already has them.
-
-## Themes
-
-Two categorical palettes ship. Switch globally, or override per chart:
-
-```python
-vc.set_theme("pastel")            # applies to every chart from now on
-vc.bar(cats, values=vals)         # ...uses pastel
-
-vc.bar(cats, values=vals, theme="default")   # override one chart only
-```
-
-- **`default`** -- the built-in palette, validated for colorblind-safe
-  adjacent pairs and contrast. Use this unless you have a reason not to.
-- **`pastel`** -- a soft pink/blue palette. It is **not**
-  accessibility-validated: pastels are too light, too low-chroma, and
-  too low-contrast, so it fails the colorblind-separation and contrast
-  checks. It stays readable only because the library always ships
-  secondary encoding (a legend for 2+ series, surface gaps between bars,
-  markers and end-labels on lines) -- identity never rests on color alone.
-  `viscomm.theme.PALETTE_NOTES` spells out what each theme trades off.
-
-Run `examples/pastel_theme.py` for a full dashboard in the pastel theme.
+All four accept `title`, `subtitle`, `ax`, and `figsize`; the axis charts
+also accept `xlabel` / `ylabel`.
 
 ## Design principles
 
@@ -89,42 +64,35 @@ The styling follows a fixed procedure rather than per-chart taste calls:
   different scale should be two charts, small multiples, or indexed to a
   common base -- not a dual-axis chart.
 - **Categorical color is assigned in a fixed order, never cycled.** Series
-  get colors by position (`viscomm.theme.CATEGORICAL`), in the order you
-  pass them. The order is validated for colorblind-safe adjacent-pair
-  contrast (worst-case ΔE 9.1 light / 8.4 dark, OKLab). `bar()` and
-  `line()` support up to 8 series on that basis.
+  get colors by position (`viscomm.CATEGORICAL`), in the order you pass
+  them. The order is validated for colorblind-safe adjacent-pair contrast.
+  `bar()` and `line()` support up to 8 series on that basis.
 - **Scatter is capped at 3 groups.** A scatter plot shows every pair of
-  groups on screen at once, so it needs *all-pairs* validation, not just
+  groups on screen at once, so it needs *all-pairs* separation, not just
   adjacent-pair -- only the first 3 palette slots clear that stricter bar.
-  Beyond that, fold extra groups into "Other" or facet into small
-  multiples rather than adding a 4th color.
+  Beyond that, fold extra groups into "Other" or facet into small multiples.
 - **A legend is always present for 2+ series, never for 1.** With one
-  series there's only one color, so the title already says what's
-  plotted; a one-swatch legend box just restates it.
-- **Fixed mark specs, not per-chart choices**: 2px lines, round joins;
-  markers >= 8px with a surface-color ring so they stay legible over a
-  line; a cluster of grouped bars fills 80% of its category slot with a
-  thin surface-color gap between adjacent bars (touching marks are
-  separated by a gap, never a drawn border); hairline (1px) gridlines a
-  step off the surface color, never dashed.
+  series there's only one color, so the title already says what's plotted;
+  a one-swatch legend box just restates it.
+- **Fixed mark specs, not per-chart choices**: 2px lines with round joins;
+  markers with a surface-color ring so they stay legible over a line; a
+  cluster of grouped bars fills 80% of its category slot with a thin
+  surface-color gap between adjacent bars (touching marks are separated by
+  a gap, never a drawn border); hairline gridlines a step off the surface
+  color, never dashed.
 - **Text never wears the series color.** Axis labels, ticks, and legend
   text use fixed ink tokens (primary/secondary/muted); identity comes from
-  the colored mark next to the text, never from coloring the text itself.
-  The one exception is a pie chart's in-wedge percentage label, which
-  switches between white and dark ink per-wedge so it always has
-  contrast against that wedge's fill.
+  the colored mark next to the text. The one exception is a pie chart's
+  in-wedge percentage label, which switches between white and dark ink
+  per-wedge (`contrast_ink`) so it always has contrast against its fill.
 
-To re-theme, edit the values in `src/viscomm/theme.py`
-(`CATEGORICAL`, `CHROME`, `MARK`) -- the chart functions consume them by
-role, so nothing else needs to change. If you swap in your own colors,
-re-validate the categorical order for colorblind-safe adjacent pairs
-before shipping it.
+To re-theme, edit `CATEGORICAL` and `CHROME` at the top of
+`src/viscomm/core.py` -- the chart functions consume them by role, so
+nothing else needs to change. If you swap in your own colors, re-validate
+the categorical order for colorblind-safe adjacent pairs before shipping.
 
-## Known limitations (v1)
+## Known limitations
 
-- Bars render as plain rectangles (no rounded data-end) -- matplotlib
-  doesn't do this natively without custom patches; a reasonable follow-up
-  if it matters for your use case.
 - No built-in dark mode; `CHROME` currently assumes a light surface.
 - Static output only (PNG/SVG/etc. via matplotlib) -- no interactive
   hover/tooltip layer.
