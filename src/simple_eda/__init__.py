@@ -33,7 +33,7 @@ from simple_eda.plots import (
 )
 from simple_eda.styles import STYLES
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __all__ = [
     "summarize",
     "missing",

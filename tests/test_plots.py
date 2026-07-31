@@ -126,3 +126,16 @@ def test_plot_box(grouped, tmp_path):
 def test_plot_bar_unknown_column(grouped, tmp_path):
     with pytest.raises(KeyError):
         eda.plot_bar(grouped, "arm", "nope", path=str(tmp_path / "x.png"))
+
+
+def test_plot_bar_highlight(grouped, tmp_path):
+    path = tmp_path / "hl.png"
+    eda.plot_bar(grouped, "arm", "drop", path=str(path), highlight="A")
+    assert path.exists() and path.stat().st_size > 0
+
+
+def test_clinical_style_exists_and_renders(grouped, tmp_path):
+    assert "clinical" in eda.STYLES
+    path = tmp_path / "clin.png"
+    eda.plot_box(grouped, "arm", "drop", str(path), style="clinical")
+    assert path.exists() and path.stat().st_size > 0

@@ -71,6 +71,14 @@ eda.STYLES   # ['light', 'dark', 'minimal', 'bold']
 | `dark` | dark surface, hues re-stepped for it |
 | `minimal` | single blue, no grid, no top/right spines |
 | `bold` | high-contrast, heavy titles, hard edges |
+| `clinical` | calm hospital look: soft blue-gray surface, muted medical hues |
+
+To make one result stand out, pass `highlight=` to `plot_bar` — the named bar
+keeps the accent color and the rest recede to gray:
+
+```python
+eda.plot_bar(df, "treatment", "reduction", style="clinical", highlight="Lipitor")
+```
 
 Or run it against the bundled dataset:
 

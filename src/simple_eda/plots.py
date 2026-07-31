@@ -21,8 +21,15 @@ from simple_eda import styles  # noqa: E402
 from simple_eda.core import _check_dataframe, numeric_columns  # noqa: E402
 
 
+def _pretty(text: str) -> str:
+    """Turn a title like 'mean cholesterol_reduction by treatment' into
+    'Mean cholesterol reduction by treatment' for readability."""
+    text = text.replace("_", " ")
+    return text[:1].upper() + text[1:] if text else text
+
+
 def _finish(fig, ax, style: dict, title: str, path: str) -> str:
-    ax.set_title(title, color=style["ink"], fontweight=style["title_weight"])
+    ax.set_title(_pretty(title), color=style["ink"], fontweight=style["title_weight"])
     styles.apply(ax, fig, style)
     fig.tight_layout()
     fig.savefig(path, dpi=120, facecolor=style["surface"])
@@ -145,12 +152,15 @@ def plot_line(df: pd.DataFrame, x: str, y, path: str = "line.png",
 
 
 def plot_bar(df: pd.DataFrame, category: str, value: str, group: str = None,
-             path: str = "bar.png", style: str = "light", agg: str = "mean") -> str:
+             path: str = "bar.png", style: str = "light", agg: str = "mean",
+             highlight=None) -> str:
     """Bar chart of an aggregated ``value`` per ``category``.
 
     ``agg`` is any pandas aggregation ("mean", "sum", "median", ...).
     Pass ``group`` to split each category into side-by-side bars (one per
     level of the grouping column) — e.g. treatment split by diet.
+    Pass ``highlight`` (a category value or list of them) to draw those bars
+    in the accent color and mute the rest — good for spotlighting a result.
     """
     _check_dataframe(df)
     _need_column(df, category)
@@ -161,8 +171,13 @@ def plot_bar(df: pd.DataFrame, category: str, value: str, group: str = None,
     if group is None:
         # One measure across categories -> a single hue, sorted for ranking.
         means = df.groupby(category)[value].agg(agg).sort_values(ascending=False)
+        keep = {highlight} if isinstance(highlight, str) else set(highlight or [])
+        colors = [
+            styles.color(st, 0) if (not keep or name in keep) else st["mute"]
+            for name in means.index
+        ]
         bars = ax.bar(means.index.astype(str), means.values,
-                      color=styles.color(st, 0), edgecolor=st["bar_edge"], linewidth=1.5)
+                      color=colors, edgecolor=st["bar_edge"], linewidth=1.5)
         _label_bars(ax, bars, st)
     else:
         # Each group level is its own series -> categorical hues + a legend.
