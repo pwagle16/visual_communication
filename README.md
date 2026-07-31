@@ -40,10 +40,30 @@ print(eda.missing(df))
 Each plotting function draws one chart, saves it to a PNG, and returns the path:
 
 ```python
-eda.plot_missing(df, "missing.png")        # bar chart of missing values
-eda.plot_histogram(df, "age", "age.png")   # one numeric column
-eda.plot_numeric(df, "numeric.png")        # a histogram per numeric column
+eda.plot_missing(df, "missing.png")               # bar chart of missing values
+eda.plot_histogram(df, "age", "age.png")          # histogram of one column
+eda.plot_numeric(df, "numeric.png")               # a histogram per numeric column
+eda.plot_scatter(df, "ad_spend", "revenue", "scatter.png")   # scatter of two columns
+eda.plot_line(df, "month", ["revenue", "ad_spend"], "line.png")  # line chart
+eda.plot_correlation(df, "corr.png")              # correlation heatmap
 ```
+
+### Visual styles
+
+Every plotting function takes a `style` argument. The colors are colorblind-safe
+(validated with a palette checker) and bars carry direct value labels.
+
+```python
+eda.plot_missing(df, "missing.png", style="dark")
+eda.STYLES   # ['light', 'dark', 'minimal', 'bold']
+```
+
+| Style | Look |
+| --- | --- |
+| `light` *(default)* | white surface, soft grid, full palette |
+| `dark` | dark surface, hues re-stepped for it |
+| `minimal` | single blue, no grid, no top/right spines |
+| `bold` | high-contrast, heavy titles, hard edges |
 
 Or run it against the bundled dataset:
 
@@ -61,6 +81,9 @@ python examples/basic_usage.py
 | `plot_missing(df, path)` | `str` | Bar chart of missing values → PNG path. |
 | `plot_histogram(df, column, path)` | `str` | Histogram of one column → PNG path. |
 | `plot_numeric(df, path)` | `str` | A histogram per numeric column → PNG path. |
+| `plot_scatter(df, x, y, path)` | `str` | Scatter of two columns → PNG path. |
+| `plot_line(df, x, y, path)` | `str` | Line chart (`y` = name or list) → PNG path. |
+| `plot_correlation(df, path)` | `str` | Correlation heatmap → PNG path. |
 
 Every function accepts a pandas `DataFrame` and raises `TypeError` on anything else.
 
