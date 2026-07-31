@@ -3,22 +3,22 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "viscomm"
+name = "simple_eda"
 version = "0.1.0"
-description = "A small, opinionated Python charting library with accessible, validated defaults"
+description = "The simplest possible exploratory-data-analysis helpers for pandas DataFrames"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
+authors = [{ name = "pwagle16" }]
 dependencies = [
-    "matplotlib>=3.7",
-    "numpy>=1.23",
+    "pandas>=1.5",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/viscomm"]
+packages = ["src/simple_eda"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

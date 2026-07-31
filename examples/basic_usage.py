@@ -1,56 +1,24 @@
-"""Generates one sample PNG per chart type into examples/output/."""
+"""Run the three simple_eda helpers on the bundled dataset.
 
-import os
+    python examples/basic_usage.py
+"""
 
-import viscomm as vc
+from pathlib import Path
 
-OUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+import pandas as pd
+
+import simple_eda as eda
+
+DATA = Path(__file__).resolve().parent.parent / "data" / "people.csv"
 
 
-def main():
-    os.makedirs(OUT_DIR, exist_ok=True)
+def main() -> None:
+    df = pd.read_csv(DATA)
 
-    ax = vc.bar(
-        ["Q1", "Q2", "Q3", "Q4"],
-        series={"2024": [12, 18, 14, 22], "2025": [15, 20, 19, 27]},
-        title="Quarterly revenue",
-        subtitle="$ millions",
-        ylabel="$M",
-    )
-    ax.figure.savefig(os.path.join(OUT_DIR, "bar.png"), dpi=150)
-
-    ax = vc.line(
-        list(range(2019, 2026)),
-        series={
-            "North": [10, 12, 15, 14, 18, 22, 25],
-            "South": [8, 9, 11, 13, 12, 14, 16],
-        },
-        title="Active users by region",
-        ylabel="Users (K)",
-    )
-    ax.figure.savefig(os.path.join(OUT_DIR, "line.png"), dpi=150)
-
-    ax = vc.scatter(
-        None,
-        None,
-        series={
-            "Group A": ([1, 2, 3, 4, 5], [2, 3, 2.5, 4, 5]),
-            "Group B": ([2, 3, 4, 5, 6], [5, 4, 6, 5, 7]),
-        },
-        title="Height vs. weight",
-        xlabel="Height (cm, centered)",
-        ylabel="Weight (kg, centered)",
-    )
-    ax.figure.savefig(os.path.join(OUT_DIR, "scatter.png"), dpi=150)
-
-    ax = vc.pie(
-        ["Direct", "Organic search", "Referral", "Paid"],
-        [35, 30, 20, 15],
-        title="Traffic by channel",
-    )
-    ax.figure.savefig(os.path.join(OUT_DIR, "pie.png"), dpi=150)
-
-    print(f"Wrote sample charts to {OUT_DIR}")
+    print("summarize:", eda.summarize(df))
+    print("numeric_columns:", eda.numeric_columns(df))
+    print("missing:")
+    print(eda.missing(df))
 
 
 if __name__ == "__main__":

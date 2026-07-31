@@ -1,130 +1,63 @@
-# viscomm
+# simple_eda
 
-A small, opinionated Python charting library. Four core chart types --
-bar, line, scatter, pie -- built on matplotlib, with an accessible,
-validated color system and consistent styling baked in so you don't have
-to hand-tune each chart.
+The simplest possible exploratory-data-analysis helpers for pandas DataFrames.
+
+- **Simple API** — flat, top-level functions. No classes to learn.
+- **Boring names** — `summarize`, `missing`, `numeric_columns`.
+- **Pandas in, plain objects out** — dicts, lists, ints, strings, and pandas Series.
 
 ## Install
 
 ```bash
-pip install -e ".[dev]"
+pip install -e .
 ```
 
 ## Usage
 
 ```python
-import viscomm as vc
+import pandas as pd
+import simple_eda as eda
 
-ax = vc.bar(
-    ["Q1", "Q2", "Q3", "Q4"],
-    series={"2024": [12, 18, 14, 22], "2025": [15, 20, 19, 27]},
-    title="Quarterly revenue",
-    subtitle="$ millions",
-    ylabel="$M",
-)
-ax.figure.savefig("revenue.png", dpi=150)
+df = pd.DataFrame({
+    "name": ["Ana", "Bo", None],
+    "age": [25, None, 31],
+})
+
+print(eda.summarize(df))
+# {'rows': 3, 'columns': 2, 'names': ['name', 'age']}
+
+print(eda.numeric_columns(df))
+# ['age']
+
+print(eda.missing(df))
+# name    1
+# age     1
+# dtype: int64
 ```
 
-Every chart function returns a standard matplotlib `Axes`, so you can keep
-customizing with plain matplotlib calls, or lay several charts out with
-`ax.figure` / `plt.subplots` as usual.
+Or run it against the bundled dataset:
 
-Run `examples/basic_usage.py` to generate a sample PNG for each chart type.
-
-## Sample datasets
-
-The `viscomm.datasets` module ships ready-to-plot synthetic data (a
-fictional coffee company, "Brewhaus") so you have something to build
-visuals on immediately. Every loader is deterministic and returns a
-namedtuple whose fields line up with a chart's arguments:
-
-```python
-import viscomm as vc
-from viscomm import datasets
-
-d = datasets.monthly_active_users()
-vc.line(d.x, series=d.series, title=d.title, ylabel=d.ylabel)
+```bash
+python examples/basic_usage.py
 ```
 
-| Loader | Chart it fits | What it is |
-|---|---|---|
-| `monthly_active_users()` | line | users (K) by platform over 12 months |
-| `quarterly_revenue_by_region()` | bar | revenue ($M) by region, 2024 vs 2025 |
-| `spend_vs_signups()` | scatter | spend vs signups across 3 channels |
-| `traffic_by_channel()` | pie | traffic share by acquisition channel |
+## API
 
-`examples/from_dataset.py` renders one of each. To use the data outside
-Python, `datasets.export_csv("data")` (or `python examples/generate_data.py`)
-writes each as a tidy CSV; the committed `data/` folder already has them.
+| Function | Returns | Description |
+| --- | --- | --- |
+| `summarize(df)` | `dict` | `rows`, `columns`, and column `names`. |
+| `missing(df)` | `pandas.Series` | Count of missing values per column. |
+| `numeric_columns(df)` | `list` | Names of the numeric columns. |
 
-## Themes
+All three accept a pandas `DataFrame` and raise `TypeError` on anything else.
 
-Two categorical palettes ship. Switch globally, or override per chart:
+## Development
 
-```python
-vc.set_theme("pastel")            # applies to every chart from now on
-vc.bar(cats, values=vals)         # ...uses pastel
-
-vc.bar(cats, values=vals, theme="default")   # override one chart only
+```bash
+pip install -e ".[dev]"
+pytest
 ```
 
-- **`default`** -- the built-in palette, validated for colorblind-safe
-  adjacent pairs and contrast. Use this unless you have a reason not to.
-- **`pastel`** -- a soft pink/blue palette. It is **not**
-  accessibility-validated: pastels are too light, too low-chroma, and
-  too low-contrast, so it fails the colorblind-separation and contrast
-  checks. It stays readable only because the library always ships
-  secondary encoding (a legend for 2+ series, surface gaps between bars,
-  markers and end-labels on lines) -- identity never rests on color alone.
-  `viscomm.theme.PALETTE_NOTES` spells out what each theme trades off.
+## License
 
-Run `examples/pastel_theme.py` for a full dashboard in the pastel theme.
-
-## Design principles
-
-The styling follows a fixed procedure rather than per-chart taste calls:
-
-- **One axis.** No chart function offers a second y-axis. Two measures of
-  different scale should be two charts, small multiples, or indexed to a
-  common base -- not a dual-axis chart.
-- **Categorical color is assigned in a fixed order, never cycled.** Series
-  get colors by position (`viscomm.theme.CATEGORICAL`), in the order you
-  pass them. The order is validated for colorblind-safe adjacent-pair
-  contrast (worst-case ΔE 9.1 light / 8.4 dark, OKLab). `bar()` and
-  `line()` support up to 8 series on that basis.
-- **Scatter is capped at 3 groups.** A scatter plot shows every pair of
-  groups on screen at once, so it needs *all-pairs* validation, not just
-  adjacent-pair -- only the first 3 palette slots clear that stricter bar.
-  Beyond that, fold extra groups into "Other" or facet into small
-  multiples rather than adding a 4th color.
-- **A legend is always present for 2+ series, never for 1.** With one
-  series there's only one color, so the title already says what's
-  plotted; a one-swatch legend box just restates it.
-- **Fixed mark specs, not per-chart choices**: 2px lines, round joins;
-  markers >= 8px with a surface-color ring so they stay legible over a
-  line; a cluster of grouped bars fills 80% of its category slot with a
-  thin surface-color gap between adjacent bars (touching marks are
-  separated by a gap, never a drawn border); hairline (1px) gridlines a
-  step off the surface color, never dashed.
-- **Text never wears the series color.** Axis labels, ticks, and legend
-  text use fixed ink tokens (primary/secondary/muted); identity comes from
-  the colored mark next to the text, never from coloring the text itself.
-  The one exception is a pie chart's in-wedge percentage label, which
-  switches between white and dark ink per-wedge so it always has
-  contrast against that wedge's fill.
-
-To re-theme, edit the values in `src/viscomm/theme.py`
-(`CATEGORICAL`, `CHROME`, `MARK`) -- the chart functions consume them by
-role, so nothing else needs to change. If you swap in your own colors,
-re-validate the categorical order for colorblind-safe adjacent pairs
-before shipping it.
-
-## Known limitations (v1)
-
-- Bars render as plain rectangles (no rounded data-end) -- matplotlib
-  doesn't do this natively without custom patches; a reasonable follow-up
-  if it matters for your use case.
-- No built-in dark mode; `CHROME` currently assumes a light surface.
-- Static output only (PNG/SVG/etc. via matplotlib) -- no interactive
-  hover/tooltip layer.
+MIT
