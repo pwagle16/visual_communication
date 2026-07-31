@@ -44,6 +44,19 @@ vc.pie(["Direct", "Organic", "Referral", "Paid"], [35, 30, 20, 15], ax=axes[1])
 Run `examples/basic_usage.py` to generate a sample PNG for each chart type
 into `examples/output/`.
 
+## Test dataset
+
+`data/coffee_sales.csv` is a small, tidy sample dataset (48 rows: 12 months
+× 4 regions, columns `month, region, revenue_k, orders, ad_spend_k`) rich
+enough to drive every chart type. Regenerate it any time with
+`python examples/generate_data.py` (deterministic — fixed seed).
+
+`examples/from_csv.py` loads it with the standard-library `csv` module and
+renders a 2×2 dashboard (`examples/output/coffee_sales.png`): monthly
+revenue lines per region, total-revenue bars, an ad-spend-vs-revenue
+scatter, and a revenue-share pie. `pandas.read_csv` works too — viscomm
+takes plain lists either way.
+
 ## API
 
 | Function | Single series | Multiple series |
