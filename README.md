@@ -45,8 +45,15 @@ eda.plot_histogram(df, "age", "age.png")          # histogram of one column
 eda.plot_numeric(df, "numeric.png")               # a histogram per numeric column
 eda.plot_scatter(df, "ad_spend", "revenue", "scatter.png")   # scatter of two columns
 eda.plot_line(df, "month", ["revenue", "ad_spend"], "line.png")  # line chart
+eda.plot_bar(df, "treatment", "reduction", path="bar.png")       # aggregated bar
+eda.plot_bar(df, "treatment", "reduction", group="diet", path="grouped.png")  # grouped bar
+eda.plot_box(df, "treatment", "reduction", "box.png")            # box plot per group
 eda.plot_correlation(df, "corr.png")              # correlation heatmap
 ```
+
+There's a worked hospital example in `examples/cholesterol_trial.py` (run
+`examples/generate_trial_data.py` first) that compares three cholesterol pills
+against a placebo and shows the effect of exercise and a fat-free diet.
 
 ### Visual styles
 
@@ -83,6 +90,8 @@ python examples/basic_usage.py
 | `plot_numeric(df, path)` | `str` | A histogram per numeric column → PNG path. |
 | `plot_scatter(df, x, y, path)` | `str` | Scatter of two columns → PNG path. |
 | `plot_line(df, x, y, path)` | `str` | Line chart (`y` = name or list) → PNG path. |
+| `plot_bar(df, category, value, group=None, path)` | `str` | Aggregated bar per category, optional grouping → PNG path. |
+| `plot_box(df, category, value, path)` | `str` | Box plot of `value` per group → PNG path. |
 | `plot_correlation(df, path)` | `str` | Correlation heatmap → PNG path. |
 
 Every function accepts a pandas `DataFrame` and raises `TypeError` on anything else.

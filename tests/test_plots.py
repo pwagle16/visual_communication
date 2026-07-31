@@ -92,3 +92,37 @@ def test_plot_correlation_needs_two_numeric(tmp_path):
     df = pd.DataFrame({"age": [1, 2, 3]})
     with pytest.raises(ValueError):
         eda.plot_correlation(df, str(tmp_path / "x.png"))
+
+
+@pytest.fixture
+def grouped():
+    return pd.DataFrame(
+        {
+            "arm": ["A", "A", "B", "B", "A", "B"],
+            "diet": ["Yes", "No", "Yes", "No", "Yes", "No"],
+            "drop": [10.0, 6.0, 8.0, 4.0, 12.0, 5.0],
+        }
+    )
+
+
+def test_plot_bar_simple(grouped, tmp_path):
+    path = tmp_path / "bar.png"
+    eda.plot_bar(grouped, "arm", "drop", path=str(path))
+    assert path.exists() and path.stat().st_size > 0
+
+
+def test_plot_bar_grouped(grouped, tmp_path):
+    path = tmp_path / "grouped.png"
+    eda.plot_bar(grouped, "arm", "drop", group="diet", path=str(path))
+    assert path.exists() and path.stat().st_size > 0
+
+
+def test_plot_box(grouped, tmp_path):
+    path = tmp_path / "box.png"
+    eda.plot_box(grouped, "arm", "drop", str(path))
+    assert path.exists() and path.stat().st_size > 0
+
+
+def test_plot_bar_unknown_column(grouped, tmp_path):
+    with pytest.raises(KeyError):
+        eda.plot_bar(grouped, "arm", "nope", path=str(tmp_path / "x.png"))

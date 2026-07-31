@@ -22,6 +22,8 @@
 
 from simple_eda.core import missing, numeric_columns, summarize
 from simple_eda.plots import (
+    plot_bar,
+    plot_box,
     plot_correlation,
     plot_histogram,
     plot_line,
@@ -31,7 +33,7 @@ from simple_eda.plots import (
 )
 from simple_eda.styles import STYLES
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = [
     "summarize",
     "missing",
@@ -41,6 +43,8 @@ __all__ = [
     "plot_numeric",
     "plot_scatter",
     "plot_line",
+    "plot_bar",
+    "plot_box",
     "plot_correlation",
     "STYLES",
 ]

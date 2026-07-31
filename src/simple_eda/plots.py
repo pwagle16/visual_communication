@@ -35,8 +35,9 @@ def _label_bars(ax, bars, style: dict) -> None:
     # even when a fill sits below the 3:1 contrast line.
     for bar in bars:
         height = bar.get_height()
+        text = f"{height:.0f}" if float(height).is_integer() else f"{height:.1f}"
         ax.annotate(
-            f"{height:g}",
+            text,
             (bar.get_x() + bar.get_width() / 2, height),
             xytext=(0, 3),
             textcoords="offset points",
@@ -141,6 +142,71 @@ def plot_line(df: pd.DataFrame, x: str, y, path: str = "line.png",
         ax.legend(frameon=False, labelcolor=st["ink"])
     title = columns[0] if len(columns) == 1 else "trends"
     return _finish(fig, ax, st, f"{title} over {x}", path)
+
+
+def plot_bar(df: pd.DataFrame, category: str, value: str, group: str = None,
+             path: str = "bar.png", style: str = "light", agg: str = "mean") -> str:
+    """Bar chart of an aggregated ``value`` per ``category``.
+
+    ``agg`` is any pandas aggregation ("mean", "sum", "median", ...).
+    Pass ``group`` to split each category into side-by-side bars (one per
+    level of the grouping column) — e.g. treatment split by diet.
+    """
+    _check_dataframe(df)
+    _need_column(df, category)
+    _need_column(df, value)
+    st = styles.get_style(style)
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+
+    if group is None:
+        # One measure across categories -> a single hue, sorted for ranking.
+        means = df.groupby(category)[value].agg(agg).sort_values(ascending=False)
+        bars = ax.bar(means.index.astype(str), means.values,
+                      color=styles.color(st, 0), edgecolor=st["bar_edge"], linewidth=1.5)
+        _label_bars(ax, bars, st)
+    else:
+        # Each group level is its own series -> categorical hues + a legend.
+        _need_column(df, group)
+        table = df.groupby([category, group])[value].agg(agg).unstack(group)
+        cats = list(table.index.astype(str))
+        levels = list(table.columns)
+        width = 0.8 / len(levels)
+        x = range(len(cats))
+        for gi, level in enumerate(levels):
+            offset = [xi + (gi - (len(levels) - 1) / 2) * width for xi in x]
+            ax.bar(offset, table[level].values, width=width * 0.92,
+                   color=styles.color(st, gi), edgecolor=st["bar_edge"],
+                   linewidth=1.2, label=str(level))
+        ax.set_xticks(list(x), cats)
+        ax.legend(title=group, frameon=False, labelcolor=st["ink"])
+
+    ax.set_ylabel(f"{agg} {value}")
+    return _finish(fig, ax, st, f"{agg} {value} by {category}", path)
+
+
+def plot_box(df: pd.DataFrame, category: str, value: str, path: str = "box.png",
+             style: str = "light") -> str:
+    """Box plot of ``value`` for each level of ``category``.
+
+    Shows the median, spread, and outliers per group — good for comparing
+    how consistent each treatment is, not just its average.
+    """
+    _check_dataframe(df)
+    _need_column(df, category)
+    _need_column(df, value)
+    st = styles.get_style(style)
+    groups = list(df[category].dropna().unique())
+    data = [df.loc[df[category] == g, value].dropna().values for g in groups]
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    bp = ax.boxplot(data, tick_labels=[str(g) for g in groups], patch_artist=True,
+                    medianprops={"color": st["ink"], "linewidth": 2})
+    for i, box in enumerate(bp["boxes"]):
+        box.set(facecolor=styles.color(st, i), edgecolor=st["bar_edge"], alpha=0.9)
+    for part in ("whiskers", "caps"):
+        for line in bp[part]:
+            line.set_color(st["muted"])
+    ax.set_ylabel(value)
+    return _finish(fig, ax, st, f"{value} by {category}", path)
 
 
 def plot_correlation(df: pd.DataFrame, path: str = "correlation.png",
