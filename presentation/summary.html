@@ -1,0 +1,291 @@
+<title>LLM Hiring Bias in Japan — Paper Summary</title>
+<style>
+  :root{
+    --bg1:#fdeef4; --bg2:#eaf1fc;
+    --surface:#ffffff;
+    --ink:#463a53;         /* headings */
+    --ink-body:#574b63;    /* body */
+    --ink-dim:#8a7d95;
+    --muted:#b0a4bb;
+    --line:#efdfe9;
+    --pink:#e07aa8;
+    --pink-soft:#fbe4ef;
+    --rose:#e888b4;
+    --blue:#6fa0dd;
+    --blue-soft:#e6eefb;
+    --coral:#ef9d84;
+    --coral-soft:#fdece5;
+    --shadow:0 20px 50px -30px rgba(198,128,168,.5);
+    --radius:18px;
+    --measure:68ch;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:linear-gradient(158deg,#fdeef4 0%, #f6eef9 46%, #eaf1fc 100%);
+    background-attachment:fixed;
+    color:var(--ink-body);
+    font-family:"SF Pro Rounded",ui-rounded,"Segoe UI",-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(28px,6vw,72px) 20px 120px;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .wrap{max-width:860px;margin:0 auto}
+  .col{max-width:var(--measure)}
+
+  /* ---- header ---- */
+  header{margin-bottom:clamp(40px,7vw,72px)}
+  .glyphs{display:flex;align-items:center;gap:16px;margin-bottom:26px}
+  .glyphs span{font-size:44px;line-height:1}
+  .glyphs .f{color:var(--rose)} .glyphs .m{color:var(--blue)}
+  .glyphs .vs{font-size:18px;color:var(--muted)}
+  .eyebrow{font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:var(--pink);font-weight:800;margin-bottom:18px}
+  h1{font-size:clamp(30px,5.4vw,54px);line-height:1.06;letter-spacing:-.02em;color:var(--ink);font-weight:800;text-wrap:balance;max-width:20ch}
+  h1 em{color:var(--pink);font-style:normal}
+  .lede{margin-top:22px;font-size:clamp(16px,2vw,20px);color:var(--ink-dim);max-width:60ch}
+  .meta{margin-top:24px;display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font-size:12px;letter-spacing:.06em;font-weight:700;color:var(--ink-body);background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:7px 14px;box-shadow:var(--shadow)}
+
+  /* ---- section scaffolding ---- */
+  section{margin-top:clamp(44px,7vw,76px)}
+  .sec-label{display:flex;align-items:center;gap:.7em;font-size:12px;letter-spacing:.32em;text-transform:uppercase;font-weight:800;margin-bottom:16px}
+  .sec-label i{display:block;width:30px;height:2px;background:currentColor;border-radius:2px;opacity:.6}
+  .sl-pink{color:var(--pink)} .sl-blue{color:var(--blue)} .sl-coral{color:var(--coral)}
+  h2{font-size:clamp(23px,3.4vw,34px);line-height:1.12;letter-spacing:-.015em;color:var(--ink);font-weight:800;text-wrap:balance;margin-bottom:14px}
+  h3{font-size:clamp(17px,2.2vw,21px);color:var(--ink);font-weight:800;margin:26px 0 8px}
+  p{margin:0 0 14px;max-width:var(--measure)}
+  strong{color:var(--ink);font-weight:800}
+  a.ref{color:var(--pink);text-decoration:none;border-bottom:1px solid var(--line)}
+
+  /* ---- lists ---- */
+  ul.clean{list-style:none;max-width:var(--measure);display:flex;flex-direction:column;gap:9px;margin:6px 0 16px}
+  ul.clean li{position:relative;padding-left:26px}
+  ul.clean li::before{content:"";position:absolute;left:4px;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--rose)}
+  ul.clean.blue li::before{background:var(--blue)}
+
+  /* ---- research-question cards ---- */
+  .qgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:8px}
+  @media(max-width:640px){.qgrid{grid-template-columns:1fr}}
+  .qcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 24px;box-shadow:var(--shadow);display:flex;gap:16px;align-items:flex-start}
+  .qnum{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff;background:linear-gradient(135deg,var(--rose),var(--pink))}
+  .qcard:nth-child(3) .qnum,.qcard:nth-child(4) .qnum{background:linear-gradient(135deg,#8fb6ea,var(--blue))}
+  .qcard p{margin:0;font-size:15.5px;color:var(--ink-body)}
+
+  /* ---- stat row ---- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow);text-align:center}
+  .stat .n{font-size:clamp(28px,4.6vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--pink)}
+  .stat:nth-child(even) .n{color:var(--blue)}
+  .stat .l{margin-top:10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);font-weight:700}
+
+  /* ---- table ---- */
+  .table-wrap{overflow-x:auto;margin-top:10px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;background:var(--surface);min-width:420px}
+  th,td{text-align:left;padding:14px 20px;font-size:15px}
+  thead th{background:var(--pink-soft);color:var(--ink);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  tbody tr{border-top:1px solid var(--line)}
+  td.model{font-weight:700;color:var(--ink)}
+  .rank{display:inline-flex;align-items:center;gap:9px}
+  .rank .dot{width:9px;height:9px;border-radius:50%}
+  .meter{height:8px;border-radius:6px;background:var(--line);width:120px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:4px}
+  .meter i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#f6acc9,var(--pink))}
+
+  /* ---- callouts ---- */
+  .callout{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--pink);border-radius:14px;padding:20px 24px;margin:18px 0;max-width:var(--measure);box-shadow:var(--shadow)}
+  .callout.quote{border-left-color:var(--rose);font-style:italic;color:var(--ink-body)}
+  .callout .qlabel{font-style:normal;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:8px}
+  .redact{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 4px}
+  .code{font-family:ui-monospace,monospace;font-size:15px;padding:10px 16px;border-radius:10px;font-weight:600}
+  .code.before{background:var(--pink-soft);color:var(--pink)}
+  .code.after{background:var(--blue-soft);color:var(--blue)}
+  .redact .arr{color:var(--muted);font-size:20px}
+
+  /* highlight (key finding) */
+  .highlight{background:linear-gradient(135deg,var(--blue-soft),#f4eafb);border:1px solid #dfe7f7;border-radius:var(--radius);padding:clamp(24px,4vw,34px);margin-top:14px;box-shadow:var(--shadow)}
+  .highlight .tag{display:inline-block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--blue);margin-bottom:12px}
+  .highlight p{font-size:clamp(16px,2.1vw,19px);color:var(--ink);max-width:56ch}
+  .highlight b{color:var(--blue)}
+
+  /* catch box */
+  .catch{display:flex;gap:22px;align-items:center;background:var(--coral-soft);border:1px solid #f6ddd2;border-radius:var(--radius);padding:24px 28px;margin-top:14px;box-shadow:var(--shadow);flex-wrap:wrap}
+  .catch .pct{font-size:clamp(40px,7vw,64px);font-weight:800;color:var(--coral);letter-spacing:-.03em;line-height:1}
+  .catch .txt{max-width:44ch}
+  .catch .txt strong{color:#d8734f}
+
+  /* conclusion */
+  .concl{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(24px,4vw,36px);box-shadow:var(--shadow);margin-top:14px}
+  .concl ul{list-style:none;display:flex;flex-direction:column;gap:14px}
+  .concl li{display:flex;gap:14px;align-items:flex-start}
+  .concl .ic{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:800;color:#fff;font-size:14px;background:linear-gradient(135deg,var(--rose),var(--pink))}
+  .concl li:nth-child(4) .ic,.concl li:nth-child(5) .ic{background:linear-gradient(135deg,#8fb6ea,var(--blue))}
+  .concl li span{max-width:60ch}
+
+  footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;max-width:var(--measure)}
+  footer a{color:var(--pink);text-decoration:none}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="glyphs"><span class="f">&#9792;</span><span class="vs">vs</span><span class="m">&#9794;</span></div>
+    <div class="eyebrow">Paper summary</div>
+    <h1>Gender Bias in LLM Hiring Decisions <em>&mdash;</em> Evidence from Japan</h1>
+    <p class="lede">Do large language models favor a candidate's gender when screening résumés in a <strong>Japanese</strong> hiring context &mdash; and can two practical fixes stop it?</p>
+    <div class="meta">
+      <span class="chip">arXiv:2606.18649</span>
+      <span class="chip">Counterfactual résumé design</span>
+      <span class="chip">5 LLMs &middot; 43,200 evaluations</span>
+    </div>
+  </header>
+
+  <!-- PURPOSE -->
+  <section>
+    <div class="sec-label sl-pink"><i></i>Purpose</div>
+    <h2>Testing Western bias findings in a non-Western setting</h2>
+    <p class="col">Prior work found that modern LLMs tend to favor <strong>female</strong> applicants &mdash; but almost entirely with English résumés and American hiring. This paper asks whether the same pattern holds in a <strong>Japanese</strong> corporate context, and whether prompt instructions or name redaction can reduce it.</p>
+  </section>
+
+  <!-- RESEARCH QUESTIONS -->
+  <section>
+    <div class="sec-label sl-pink"><i></i>Research questions</div>
+    <h2>Four questions</h2>
+    <div class="qgrid">
+      <div class="qcard"><div class="qnum">1</div><p>Do LLMs show gender bias when evaluating Japanese job candidates?</p></div>
+      <div class="qcard"><div class="qnum">2</div><p>Does the industry's gender makeup (Finance vs. Healthcare) affect the bias?</p></div>
+      <div class="qcard"><div class="qnum">3</div><p>Can a prompt telling the model to ignore gender reduce the bias?</p></div>
+      <div class="qcard"><div class="qnum">4</div><p>Can removing candidate names (anonymization) reduce the bias?</p></div>
+    </div>
+  </section>
+
+  <!-- METHODOLOGY -->
+  <section>
+    <div class="sec-label sl-pink"><i></i>Methodology</div>
+    <h2>Change only the name &mdash; hold everything else constant</h2>
+    <p class="col">A controlled counterfactual design: each résumé was scored many times with only the applicant's <strong>name</strong> swapped, so any score difference is attributable to perceived gender alone.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n mono">60</div><div class="l">Résumés</div></div>
+      <div class="stat"><div class="n mono">12 + 12</div><div class="l">M / F name pairs</div></div>
+      <div class="stat"><div class="n mono">5</div><div class="l">LLMs</div></div>
+      <div class="stat"><div class="n mono">43,200</div><div class="l">Evaluations</div></div>
+    </div>
+
+    <h3>Dataset</h3>
+    <p class="col">60 résumés converted into traditional Japanese <strong>rirekisho</strong> format, spanning two industries and four roles:</p>
+    <ul class="clean">
+      <li><strong>Finance</strong> — finance manager, secretary</li>
+      <li><strong>Healthcare</strong> — doctor, nurse</li>
+    </ul>
+
+    <h3>Models tested</h3>
+    <ul class="clean blue">
+      <li>Claude Sonnet 4.6</li>
+      <li>GPT-4o</li>
+      <li>Gemini 2.5 Flash</li>
+      <li>DeepSeek V3</li>
+      <li>Llama 3.3 70B</li>
+    </ul>
+
+    <h3>Evaluation criteria</h3>
+    <p class="col">Each model scored candidates <strong>1–10</strong> on four dimensions: role relevance, professional experience, Japanese workplace cultural fit, and overall evaluation.</p>
+  </section>
+
+  <!-- KEY FINDINGS -->
+  <section>
+    <div class="sec-label sl-pink"><i></i>Key findings</div>
+    <h2>What the experiment showed</h2>
+
+    <h3>1 · Every model favored female candidates</h3>
+    <p class="col">Across all résumés, <strong>female-named applicants consistently scored higher</strong> than identical male-named applicants. The effect was modest but highly consistent, and stayed statistically significant after controlling for résumé, model, and name pair.</p>
+
+    <h3>2 · GPT-4o showed the strongest bias</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>Pro-female bias</th></tr></thead>
+        <tbody>
+          <tr><td class="model">GPT-4o</td><td><span class="rank"><span class="dot" style="background:var(--pink)"></span>Strongest<span class="meter"><i style="width:100%"></i></span></span></td></tr>
+          <tr><td class="model">Claude Sonnet 4.6</td><td><span class="rank"><span class="dot" style="background:var(--pink)"></span>Very strong<span class="meter"><i style="width:89%"></i></span></span></td></tr>
+          <tr><td class="model">Gemini 2.5 Flash</td><td><span class="rank"><span class="dot" style="background:var(--rose)"></span>Strong<span class="meter"><i style="width:81%"></i></span></span></td></tr>
+          <tr><td class="model">DeepSeek V3</td><td><span class="rank"><span class="dot" style="background:var(--rose)"></span>Moderate<span class="meter"><i style="width:40%"></i></span></span></td></tr>
+          <tr><td class="model">Llama 3.3 70B</td><td><span class="rank"><span class="dot" style="background:var(--muted)"></span>Weakest<span class="meter"><i style="width:19%"></i></span></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3 · Industry barely mattered</h3>
+    <p class="col">Finance (male-dominated) and Healthcare (female-dominated) produced <strong>nearly identical</strong> pro-female bias. Even male-dominated roles like <strong>finance manager</strong> and <strong>doctor</strong> favored female-named applicants.</p>
+
+    <h3>4 · Prompt engineering did <em>not</em> fix it</h3>
+    <div class="callout quote">
+      <div class="qlabel">The fairness prompt</div>
+      Ignore the candidate's name and gender. Evaluate only skills and experience.
+    </div>
+    <p class="col">This had <strong>almost no effect</strong> — bias stayed significant for all five models. Simply instructing a model to "be fair" is ineffective.</p>
+
+    <h3>5 · Removing names almost eliminated the bias</h3>
+    <p class="col">The paper's most important result. Instead of <em>asking</em> the model to ignore names, the researchers <strong>deleted them</strong> before evaluation:</p>
+    <div class="callout">
+      <div class="redact">
+        <span class="code before">Haruto Sato</span>
+        <span class="arr">&rarr;</span>
+        <span class="code after mono">[PRIVATE_PERSON]</span>
+      </div>
+    </div>
+    <div class="highlight">
+      <span class="tag">Central takeaway</span>
+      <p>With names removed, gender bias <b>nearly disappeared</b> and male and female résumés scored essentially the same. The candidate's <b>name is the primary channel</b> through which LLMs infer gender.</p>
+    </div>
+  </section>
+
+  <!-- UNEXPECTED -->
+  <section>
+    <div class="sec-label sl-coral"><i></i>Unexpected finding</div>
+    <h2>The redaction catch</h2>
+    <div class="catch">
+      <div class="pct mono">42%</div>
+      <div class="txt">When names became <span class="mono">[PRIVATE_PERSON]</span>, <strong>GPT-4o refused 42% of requests</strong> — its safety system flagged the redacted text. Anonymization works in theory, but some models need careful implementation.</div>
+    </div>
+  </section>
+
+  <!-- WHY IT MATTERS -->
+  <section>
+    <div class="sec-label sl-pink"><i></i>Why it matters</div>
+    <h2>The pattern crosses cultures</h2>
+    <p class="col">Earlier studies found pro-female bias with English résumés, American hiring, and Western companies. This paper shows the <strong>same pattern</strong> in Japanese-language prompts, Japanese résumé formats, and Japanese corporate scenarios — suggesting the bias stems from <strong>LLM alignment methods</strong> rather than Western culture alone.</p>
+  </section>
+
+  <!-- LIMITATIONS -->
+  <section>
+    <div class="sec-label sl-blue"><i></i>Limitations</div>
+    <h2>What to keep in mind</h2>
+    <ul class="clean blue">
+      <li>Japanese résumés were generated from American résumés, not written by native Japanese professionals.</li>
+      <li>Only one fairness prompt was tested.</li>
+      <li>GPT-4o privacy-filter results were incomplete due to refusals.</li>
+      <li>Only five models were evaluated.</li>
+      <li>Each résumé was scored once at temperature 0, so output variability wasn't measured.</li>
+    </ul>
+  </section>
+
+  <!-- CONCLUSION -->
+  <section>
+    <div class="sec-label sl-blue"><i></i>Final conclusion</div>
+    <h2>What the study concludes</h2>
+    <div class="concl">
+      <ul>
+        <li><span class="ic">&#9792;</span><span>Modern LLMs gave <strong>higher hiring scores to female-named applicants</strong>, even on identical résumés.</span></li>
+        <li><span class="ic">&#127760;</span><span>The bias <strong>generalized</strong> from Western settings to a Japanese hiring context.</span></li>
+        <li><span class="ic">&#10007;</span><span>Telling models to ignore gender <strong>does not meaningfully reduce bias</strong>.</span></li>
+        <li><span class="ic">&#10003;</span><span><strong>Removing names before evaluation is far more effective</strong> — names are the primary source of gender inference.</span></li>
+        <li><span class="ic">&#9881;</span><span>Organizations should favor <strong>system-level anonymization</strong> over prompt-based fairness instructions.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Summary of <em>Gender Bias in LLM Hiring Decisions: Evidence from a Japanese Context and Evaluation of Mitigation Strategies</em> (arXiv:2606.18649). Companion to the 2-minute visual deck.
+  </footer>
+
+</div>
