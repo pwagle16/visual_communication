@@ -19,6 +19,8 @@ Open `index.html` in any browser. No build step, no dependencies — one file.
 
 ## Design
 
-Single dark visual world. Color encodes the narrative: crimson (Japan / setup),
-rose vs. steel (female / male), green (bias eliminated), amber (the deployment
-catch). Numbers and symbols do the talking — no paragraphs on the slides.
+Soft pastel world — a pink-to-blue gradient ground, rounded type, floating
+white cards. Color encodes the narrative: **pink** carries the problem
+(female-name bias), **blue** carries the fix (name redacted → bias gone), and a
+soft **coral** flags the deployment catch. Numbers and symbols do the talking —
+no paragraphs on the slides.
