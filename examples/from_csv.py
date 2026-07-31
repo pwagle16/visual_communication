@@ -1,17 +1,24 @@
-"""Load data/coffee_sales.csv and render two charts with a brown palette.
+"""Load data/coffee_sales.csv and render a coffee-themed two-chart figure.
 
 Reads with the standard-library csv module (viscomm takes plain lists, so
 no pandas needed). Renders monthly revenue lines per region alongside a
 total-revenue bar chart, using a soft brown pastel palette -- with the
 highest-revenue region drawn in dark brown to make it stand out. Colors are
 mapped per region, so a region keeps the same color across both charts.
+
+For fun, the whole figure is dressed up as coffee: a latte-cream page,
+coffee-brown chrome, and little hand-drawn coffee beans scattered around
+the margins. All of that decoration lives here in the example -- the
+viscomm library itself stays plain.
 """
 
 import csv
 import os
+import random
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import viscomm as vc
 
@@ -21,9 +28,69 @@ OUT_DIR = os.path.join(HERE, "output")
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-# Soft brown pastels for the also-rans; the top region gets dark brown.
-BROWN_PASTEL = ["#cdb391", "#c2a279", "#dac7a8", "#b89b74"]
-DARK_BROWN = "#4a2f1a"
+# --- coffee palette ---------------------------------------------------------
+PAGE = "#e7d7bf"       # latte-cream page background
+PANEL = "#f4ecdd"      # lighter foam for the chart panels
+COFFEE_INK = "#3a2413"  # espresso-dark text
+GRID = "#dcc9ab"       # muted crema gridlines
+SPINE = "#9c7b56"      # roasted-tan axis lines
+
+BROWN_PASTEL = ["#cdb391", "#c2a279", "#dac7a8", "#b89b74"]  # also-ran regions
+DARK_BROWN = "#4a2f1a"                                       # the leader
+BEAN_ROASTS = ["#3d2415", "#4a2f1a", "#5b3a22", "#33200f"]   # bean fill variety
+BEAN_EDGE = "#20120a"
+BEAN_SEAM = "#c8a877"
+
+FIG_W, FIG_H = 16, 6  # inches; used to keep beans round despite the wide frame
+
+
+def draw_bean(deco, fx, fy, size, angle, fill):
+    """Draw one coffee bean (ellipse + curved seam) centered at figure
+    fraction (fx, fy). `size` is the half-length in inches; dividing pixel
+    offsets by the figure's inch extents keeps the bean shape from stretching."""
+    ang = np.radians(angle)
+    ca, sa = np.cos(ang), np.sin(ang)
+    t = np.linspace(0, 2 * np.pi, 48)
+    ox, oy = np.cos(t) * size, np.sin(t) * size * 0.6
+    deco.fill(fx + (ox * ca - oy * sa) / FIG_W, fy + (ox * sa + oy * ca) / FIG_H,
+              facecolor=fill, edgecolor=BEAN_EDGE, linewidth=1.1, zorder=5)
+    s = np.linspace(-0.8, 0.8, 24)
+    sx, sy = s * size, np.sin(s * np.pi) * 0.12 * size  # gentle bow for the crease
+    deco.plot(fx + (sx * ca - sy * sa) / FIG_W, fy + (sx * sa + sy * ca) / FIG_H,
+              color=BEAN_SEAM, linewidth=1.3, zorder=6, solid_capstyle="round")
+
+
+def scatter_beans(fig, rng):
+    """Overlay a transparent full-figure axes and sprinkle beans in the margins."""
+    deco = fig.add_axes((0, 0, 1, 1), zorder=4)
+    deco.set_axis_off()
+    deco.set_xlim(0, 1)
+    deco.set_ylim(0, 1)
+    deco.patch.set_alpha(0)
+
+    spots = []
+    for cx, cy in [(0.03, 0.08), (0.03, 0.9), (0.97, 0.08), (0.97, 0.9)]:  # corners
+        spots += [(cx + rng.uniform(-0.025, 0.025), cy + rng.uniform(-0.07, 0.07))
+                  for _ in range(4)]
+    spots += [(rng.uniform(0.62, 0.92), rng.uniform(0.88, 0.97)) for _ in range(3)]  # top-right
+    spots += [(rng.uniform(0.10, 0.38), rng.uniform(0.88, 0.97)) for _ in range(3)]  # top-left
+    spots += [(rng.uniform(0.005, 0.035), rng.uniform(0.25, 0.75)) for _ in range(4)]  # left
+    spots += [(rng.uniform(0.95, 0.99), rng.uniform(0.25, 0.75)) for _ in range(4)]  # right
+
+    for fx, fy in spots:
+        draw_bean(deco, min(max(fx, 0.01), 0.99), min(max(fy, 0.02), 0.98),
+                  size=rng.uniform(0.20, 0.32), angle=rng.uniform(0, 360),
+                  fill=rng.choice(BEAN_ROASTS))
+
+
+def brew(ax):
+    """Recolor a finished chart's chrome into warm coffee tones."""
+    ax.set_facecolor(PANEL)
+    for gl in ax.get_xgridlines() + ax.get_ygridlines():
+        gl.set_color(GRID)
+    for name, spine in ax.spines.items():
+        if spine.get_visible():
+            spine.set_color(SPINE)
 
 
 def load_rows():
@@ -49,17 +116,16 @@ def main():
     totals = {reg: round(sum(revenue_series[reg]), 1) for reg in regions}
     top_region = max(totals, key=totals.get)
 
-    # One color per region: dark brown for the leader, pastels for the rest.
-    # Built in `regions` order so it lines up with both the line series and
-    # the bar categories -- a region is the same color in both charts.
+    # One color per region: dark brown for the leader, pastels for the rest,
+    # built in `regions` order so it lines up with both charts.
     pastels = iter(BROWN_PASTEL)
     region_color = {
         reg: DARK_BROWN if reg == top_region else next(pastels) for reg in regions
     }
     colors = [region_color[reg] for reg in regions]
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    fig.patch.set_facecolor(vc.CHROME["surface"])
+    fig, axes = plt.subplots(1, 2, figsize=(FIG_W, FIG_H))
+    fig.patch.set_facecolor(PAGE)
 
     vc.line(list(range(1, 13)), series=revenue_series, colors=colors,
             title="Monthly revenue by region", subtitle="$K, Jan-Dec",
@@ -68,11 +134,16 @@ def main():
            title="Total revenue by region", subtitle=f"$K, full year -- {top_region} leads",
            ylabel="$K", ax=axes[1])
 
-    fig.suptitle("Coffee sales -- from data/coffee_sales.csv", x=0.02, ha="left",
-                 fontsize=15, fontweight="bold", color=vc.CHROME["primary_ink"])
-    fig.tight_layout(rect=(0, 0, 1, 0.94))
+    for ax in axes:
+        brew(ax)
+
+    fig.suptitle("☕  Coffee sales  ☕", x=0.5, ha="center",
+                 fontsize=17, fontweight="bold", color=COFFEE_INK)
+    fig.subplots_adjust(left=0.07, right=0.93, top=0.74, bottom=0.20, wspace=0.22)
+    scatter_beans(fig, random.Random(11))
+
     out_path = os.path.join(OUT_DIR, "coffee_sales.png")
-    fig.savefig(out_path, dpi=150)
+    fig.savefig(out_path, dpi=150, facecolor=PAGE)
     print(f"Wrote {out_path} (top region: {top_region})")
 
 
