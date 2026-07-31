@@ -31,7 +31,8 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 # --- coffee palette ---------------------------------------------------------
 PAGE = "#e7d7bf"       # latte-cream page background
 PANEL = "#f4ecdd"      # lighter foam for the chart panels
-COFFEE_INK = "#3a2413"  # espresso-dark text
+COFFEE_INK = "#2e1c0d"  # espresso-dark text (titles)
+DESC_INK = "#5f4025"    # readable roast brown (descriptions)
 GRID = "#dcc9ab"       # muted crema gridlines
 SPINE = "#9c7b56"      # roasted-tan axis lines
 
@@ -72,8 +73,8 @@ def scatter_beans(fig, rng):
     for cx, cy in [(0.03, 0.08), (0.03, 0.9), (0.97, 0.08), (0.97, 0.9)]:  # corners
         spots += [(cx + rng.uniform(-0.025, 0.025), cy + rng.uniform(-0.07, 0.07))
                   for _ in range(4)]
-    spots += [(rng.uniform(0.62, 0.92), rng.uniform(0.88, 0.97)) for _ in range(3)]  # top-right
-    spots += [(rng.uniform(0.10, 0.38), rng.uniform(0.88, 0.97)) for _ in range(3)]  # top-left
+    spots += [(rng.uniform(0.72, 0.92), rng.uniform(0.9, 0.97)) for _ in range(3)]  # top-right
+    spots += [(rng.uniform(0.08, 0.28), rng.uniform(0.9, 0.97)) for _ in range(3)]  # top-left
     spots += [(rng.uniform(0.005, 0.035), rng.uniform(0.25, 0.75)) for _ in range(4)]  # left
     spots += [(rng.uniform(0.95, 0.99), rng.uniform(0.25, 0.75)) for _ in range(4)]  # right
 
@@ -84,13 +85,26 @@ def scatter_beans(fig, rng):
 
 
 def brew(ax):
-    """Recolor a finished chart's chrome into warm coffee tones."""
+    """Recolor a finished chart's chrome into warm coffee tones and make its
+    title + description read clearly against the busy background."""
     ax.set_facecolor(PANEL)
     for gl in ax.get_xgridlines() + ax.get_ygridlines():
         gl.set_color(GRID)
     for name, spine in ax.spines.items():
         if spine.get_visible():
             spine.set_color(SPINE)
+
+    # viscomm draws the title then the subtitle last, as the final two texts
+    # on the axes -- darken and enlarge them so both stand out clearly.
+    if len(ax.texts) >= 2:
+        title_txt, desc_txt = ax.texts[-2], ax.texts[-1]
+        title_txt.set(color=COFFEE_INK, fontsize=16, fontweight="bold")
+        desc_txt.set(color=DESC_INK, fontsize=11.5)
+
+    legend = ax.get_legend()
+    if legend:
+        for t in legend.get_texts():
+            t.set_color(DESC_INK)
 
 
 def load_rows():
@@ -128,18 +142,23 @@ def main():
     fig.patch.set_facecolor(PAGE)
 
     vc.line(list(range(1, 13)), series=revenue_series, colors=colors,
-            title="Monthly revenue by region", subtitle="$K, Jan-Dec",
+            title="Monthly revenue by region",
+            subtitle="Revenue ($K) each month, Jan-Dec -- one line per region",
             xlabel="Month", ylabel="$K", ax=axes[0])
     vc.bar(regions, values=[totals[r] for r in regions], colors=colors,
-           title="Total revenue by region", subtitle=f"$K, full year -- {top_region} leads",
+           title="Total revenue by region",
+           subtitle=f"Full-year revenue ($K) per region -- {top_region} earns the most",
            ylabel="$K", ax=axes[1])
 
     for ax in axes:
         brew(ax)
 
-    fig.suptitle("☕  Coffee sales  ☕", x=0.5, ha="center",
-                 fontsize=17, fontweight="bold", color=COFFEE_INK)
-    fig.subplots_adjust(left=0.07, right=0.93, top=0.74, bottom=0.20, wspace=0.22)
+    # A clear dashboard header: bold title + a one-line description of the figure.
+    fig.text(0.5, 0.935, "☕  Coffee Sales Dashboard", ha="center",
+             fontsize=23, fontweight="bold", color=COFFEE_INK)
+    fig.text(0.5, 0.865, "Monthly revenue trends and full-year totals across four "
+             "regions -- North leads.", ha="center", fontsize=13, color=DESC_INK)
+    fig.subplots_adjust(left=0.07, right=0.93, top=0.72, bottom=0.20, wspace=0.22)
     scatter_beans(fig, random.Random(11))
 
     out_path = os.path.join(OUT_DIR, "coffee_sales.png")
