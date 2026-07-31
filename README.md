@@ -52,10 +52,15 @@ enough to drive every chart type. Regenerate it any time with
 `python examples/generate_data.py` (deterministic — fixed seed).
 
 `examples/from_csv.py` loads it with the standard-library `csv` module and
-renders a 2×2 dashboard (`examples/output/coffee_sales.png`): monthly
-revenue lines per region, total-revenue bars, an ad-spend-vs-revenue
-scatter, and a revenue-share pie. `pandas.read_csv` works too — viscomm
-takes plain lists either way.
+renders two charts side by side (`examples/output/coffee_sales.png`):
+monthly revenue lines per region and a total-revenue bar chart. It uses a
+soft brown pastel palette via the `colors=` argument, with the
+highest-revenue region drawn in dark brown; colors are mapped per region so
+each region keeps the same color in both charts. `pandas.read_csv` works
+too — viscomm takes plain lists either way.
+
+Both `bar()` and `line()` accept `colors=` to override the default palette
+(one color per series, or one per bar for a single-series bar chart).
 
 ## API
 

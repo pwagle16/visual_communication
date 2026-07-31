@@ -117,10 +117,12 @@ def _as_series(single, series, single_name):
     return {"": single} if series is None else series
 
 
-def bar(categories, values=None, *, series=None, horizontal=False, title=None,
-        subtitle=None, xlabel=None, ylabel=None, ax=None, figsize=(8, 5)):
+def bar(categories, values=None, *, series=None, colors=None, horizontal=False,
+        title=None, subtitle=None, xlabel=None, ylabel=None, ax=None, figsize=(8, 5)):
     """Bar/column chart. Pass `values` for one series, or `series` (name ->
-    values) for grouped bars. Returns the Axes."""
+    values) for grouped bars. `colors` overrides the default palette: a list
+    of one color per bar for a single series, or one per series when grouped.
+    Returns the Axes."""
     series = _as_series(values, series, "values")
     _check_capacity(len(series), "bar")
     n_cat, n_series = len(categories), len(series)
@@ -128,6 +130,7 @@ def bar(categories, values=None, *, series=None, horizontal=False, title=None,
         if len(vals) != n_cat:
             raise ValueError(f"series '{name}' has {len(vals)} values, expected {n_cat}.")
     ax = _new_axes(ax, figsize)
+    per_bar = colors is not None and n_series == 1  # one color per bar, not per series
 
     x = np.arange(n_cat)
     pitch = 0.8 / n_series  # cluster fills 80% of each category slot
@@ -135,9 +138,10 @@ def bar(categories, values=None, *, series=None, horizontal=False, title=None,
     width = min(0.6, pitch - gap)
     for i, (name, vals) in enumerate(series.items()):
         offset = (i - (n_series - 1) / 2) * pitch
+        color = colors if per_bar else (colors or CATEGORICAL)[i]
         draw = ax.barh if horizontal else ax.bar
         key = "height" if horizontal else "width"
-        draw(x + offset, vals, label=name or None, color=CATEGORICAL[i], zorder=3, **{key: width})
+        draw(x + offset, vals, label=name or None, color=color, zorder=3, **{key: width})
     (ax.set_yticks if horizontal else ax.set_xticks)(x)
     (ax.set_yticklabels if horizontal else ax.set_xticklabels)(categories)
 
@@ -148,10 +152,11 @@ def bar(categories, values=None, *, series=None, horizontal=False, title=None,
     return ax
 
 
-def line(x, y=None, *, series=None, title=None, subtitle=None, xlabel=None,
-         ylabel=None, direct_labels=True, ax=None, figsize=(8, 5)):
+def line(x, y=None, *, series=None, colors=None, title=None, subtitle=None,
+         xlabel=None, ylabel=None, direct_labels=True, ax=None, figsize=(8, 5)):
     """Line chart. Pass `y` for one series, or `series` (name -> y-values)
-    sharing the x-axis. End markers and direct labels supplement the legend.
+    sharing the x-axis. `colors` overrides the default palette (one per
+    series). End markers and direct labels supplement the legend.
     Returns the Axes."""
     series = _as_series(y, series, "y")
     _check_capacity(len(series), "line")
@@ -162,7 +167,7 @@ def line(x, y=None, *, series=None, title=None, subtitle=None, xlabel=None,
 
     labelled = direct_labels and len(series) <= 4  # past 4, end-labels collide
     for i, (name, ys) in enumerate(series.items()):
-        color = CATEGORICAL[i]
+        color = (colors or CATEGORICAL)[i]
         ax.plot(x, ys, color=color, linewidth=_LINE_WIDTH, solid_capstyle="round",
                 solid_joinstyle="round", label=name or None, zorder=3)
         ax.plot([x[-1]], [ys[-1]], marker="o", markersize=_MARKER_SIZE,
