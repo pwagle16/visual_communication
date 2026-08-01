@@ -164,6 +164,7 @@ def main():
     out_path = os.path.join(OUT_DIR, "coffee_sales.png")
     fig.savefig(out_path, dpi=150, facecolor=PAGE)
     print(f"Wrote {out_path} (top region: {top_region})")
+    plt.show()  # pop the chart open in a window when run interactively
 
 
 if __name__ == "__main__":
