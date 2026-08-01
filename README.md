@@ -1,10 +1,16 @@
 # viscomm
 
-A small, opinionated Python charting library. Four core chart types --
-bar, line, scatter, pie -- built on matplotlib, with an accessible,
-validated color system and consistent styling baked in so you don't have
-to hand-tune each chart. The whole library is a single ~220-line module
+A small, opinionated, **coffee-themed** Python charting library. Four core
+chart types -- bar, line, scatter, pie -- built on matplotlib. Every chart
+comes out in a warm brown, latte-cream look with roasted coffee beans tucked
+into the corners **automatically, whatever data you give it** -- no styling
+required on your end. The whole library is a single module
 (`src/viscomm/core.py`).
+
+```python
+import viscomm as vc
+vc.bar(["A", "B", "C"], values=[3, 7, 5], title="Sales")   # already brown + beans
+```
 
 ## Install
 

@@ -11,27 +11,28 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-# A colorblind-safe categorical order, assigned to series by position. Capped
-# at eight: past that, fold extra series into "Other" or use small multiples.
+# A coffee-brown categorical order, assigned to series by position. The first
+# slot is a dark espresso so the leading series stands out; the rest are warmer
+# browns. Capped at eight: past that, fold extras into "Other".
 CATEGORICAL = [
-    "#2a78d6",  # blue
-    "#eb6834",  # orange
-    "#1baf7a",  # aqua
-    "#eda100",  # yellow
-    "#e87ba4",  # magenta
-    "#008300",  # green
-    "#4a3aa7",  # violet
-    "#e34948",  # red
+    "#3b2412",  # espresso (stands out)
+    "#6f4a29",  # coffee
+    "#a9855f",  # latte
+    "#caa877",  # foam tan
+    "#8a5a34",  # mocha
+    "#d8c3a5",  # oat
+    "#5b3a22",  # roast
+    "#b58a63",  # caramel
 ]
 
-# Non-data "chrome": surface, ink, and structural lines.
+# Non-data "chrome": a warm latte surface, espresso ink, and crema-toned lines.
 CHROME = {
-    "surface": "#fcfcfb",
-    "primary_ink": "#0b0b0b",
-    "secondary_ink": "#52514e",
-    "muted_ink": "#898781",
-    "gridline": "#e1e0d9",
-    "baseline": "#c3c2b7",
+    "surface": "#f2e8d5",
+    "primary_ink": "#2e1c0d",
+    "secondary_ink": "#5f4025",
+    "muted_ink": "#8a6a4a",
+    "gridline": "#e0d0b4",
+    "baseline": "#c2a279",
 }
 
 _LINE_WIDTH = 2.0
@@ -117,6 +118,46 @@ def _as_series(single, series, single_name):
     return {"": single} if series is None else series
 
 
+# --- coffee beans -----------------------------------------------------------
+# The signature garnish: every chart the library draws gets roasted coffee
+# beans tucked into its corners. A bean is an ellipse plus a curved seam;
+# offsets are divided by the figure's inch size so beans stay bean-shaped on
+# any aspect ratio. Corners are chosen because they stay clear of titles,
+# legends, and axis labels whatever the data.
+_BEAN_ROASTS = ["#3d2415", "#4a2f1a", "#5b3a22", "#33200f"]
+_BEAN_SPOTS = [  # (x, y, angle) in figure fractions, tucked clear of text
+    (0.035, 0.05, 25), (0.085, 0.115, 60),   # bottom-left
+    (0.965, 0.05, 40), (0.915, 0.115, 85),   # bottom-right
+    (0.965, 0.95, 15), (0.915, 0.90, 130),   # top-right
+    (0.03, 0.965, 110),                       # top-left, above the title
+]
+
+
+def _draw_bean(deco, fx, fy, size, angle, fill, w, h):
+    a = np.radians(angle)
+    ca, sa = np.cos(a), np.sin(a)
+    t = np.linspace(0, 2 * np.pi, 40)
+    ox, oy = np.cos(t) * size, np.sin(t) * size * 0.6
+    deco.fill(fx + (ox * ca - oy * sa) / w, fy + (ox * sa + oy * ca) / h,
+              facecolor=fill, edgecolor="#20120a", linewidth=1.0, zorder=5)
+    s = np.linspace(-0.8, 0.8, 20)
+    sx, sy = s * size, np.sin(s * np.pi) * 0.12 * size  # gentle bow for the seam
+    deco.plot(fx + (sx * ca - sy * sa) / w, fy + (sx * sa + sy * ca) / h,
+              color="#c8a877", linewidth=1.1, zorder=6, solid_capstyle="round")
+
+
+def _coffee_beans(fig):
+    """Scatter coffee beans into the corners of a figure the library owns."""
+    w, h = fig.get_size_inches()
+    deco = fig.add_axes((0, 0, 1, 1), zorder=5)
+    deco.set_axis_off()
+    deco.set_xlim(0, 1)
+    deco.set_ylim(0, 1)
+    deco.patch.set_alpha(0)
+    for i, (fx, fy, ang) in enumerate(_BEAN_SPOTS):
+        _draw_bean(deco, fx, fy, 0.20 + 0.03 * (i % 3), ang, _BEAN_ROASTS[i % 4], w, h)
+
+
 def bar(categories, values=None, *, series=None, colors=None, horizontal=False,
         title=None, subtitle=None, xlabel=None, ylabel=None, ax=None, figsize=(8, 5)):
     """Bar/column chart. Pass `values` for one series, or `series` (name ->
@@ -129,6 +170,7 @@ def bar(categories, values=None, *, series=None, colors=None, horizontal=False,
     for name, vals in series.items():
         if len(vals) != n_cat:
             raise ValueError(f"series '{name}' has {len(vals)} values, expected {n_cat}.")
+    owns = ax is None
     ax = _new_axes(ax, figsize)
     per_bar = colors is not None and n_series == 1  # one color per bar, not per series
 
@@ -148,7 +190,10 @@ def bar(categories, values=None, *, series=None, colors=None, horizontal=False,
     _style(ax, title=title, subtitle=subtitle, xlabel=xlabel, ylabel=ylabel,
            grid_axis="x" if horizontal else "y")
     _legend(ax, n_series)
-    ax.figure.tight_layout()
+    fig = ax.figure
+    fig.tight_layout()
+    if owns:
+        _coffee_beans(fig)
     return ax
 
 
@@ -163,6 +208,7 @@ def line(x, y=None, *, series=None, colors=None, title=None, subtitle=None,
     for name, ys in series.items():
         if len(ys) != len(x):
             raise ValueError(f"series '{name}' has {len(ys)} values, expected {len(x)}.")
+    owns = ax is None
     ax = _new_axes(ax, figsize)
 
     labelled = direct_labels and len(series) <= 4  # past 4, end-labels collide
@@ -180,7 +226,10 @@ def line(x, y=None, *, series=None, colors=None, title=None, subtitle=None,
 
     _style(ax, title=title, subtitle=subtitle, xlabel=xlabel, ylabel=ylabel)
     _legend(ax, len(series), placement="bottom" if labelled else "right")
-    ax.figure.tight_layout()
+    fig = ax.figure
+    fig.tight_layout()
+    if owns:
+        _coffee_beans(fig)
     return ax
 
 
@@ -192,6 +241,7 @@ def scatter(x, y=None, *, series=None, title=None, subtitle=None, xlabel=None,
     if len(series) > 3:
         raise ValueError("scatter() supports at most 3 groups before adjacent "
                          "points become hard to tell apart by color.")
+    owns = ax is None
     ax = _new_axes(ax, figsize)
 
     marker_area = _MARKER_SIZE ** 2  # matplotlib `s` is area in points**2
@@ -203,7 +253,10 @@ def scatter(x, y=None, *, series=None, title=None, subtitle=None, xlabel=None,
 
     _style(ax, title=title, subtitle=subtitle, xlabel=xlabel, ylabel=ylabel)
     _legend(ax, len(series))
-    ax.figure.tight_layout()
+    fig = ax.figure
+    fig.tight_layout()
+    if owns:
+        _coffee_beans(fig)
     return ax
 
 
@@ -212,6 +265,7 @@ def pie(labels, values, *, title=None, subtitle=None, ax=None, figsize=(6, 6)):
     if len(labels) != len(values):
         raise ValueError(f"got {len(labels)} labels but {len(values)} values.")
     _check_capacity(len(labels), "pie")
+    owns = ax is None
     ax = _new_axes(ax, figsize)
 
     colors = CATEGORICAL[: len(labels)]
@@ -225,5 +279,8 @@ def pie(labels, values, *, title=None, subtitle=None, ax=None, figsize=(6, 6)):
         autotext.set_color(contrast_ink(color))
     ax.set_aspect("equal")
     _style(ax, title=title, subtitle=subtitle, xlabel=None, ylabel=None, grid_axis=None)
-    ax.figure.tight_layout()
+    fig = ax.figure
+    fig.tight_layout()
+    if owns:
+        _coffee_beans(fig)
     return ax
