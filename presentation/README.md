@@ -6,7 +6,7 @@ Mitigation Strategies* (arXiv:2606.18649).
 
 ## Files
 
-- **`gender_bias_llm_hiring.pptx`** — the editable **PowerPoint** (11 slides), built to track the spoken script beat-by-beat. Nearly wordless: shape-drawn icons, a scales-of-fairness motif (level question → tilted answer), a raised/highlighted résumé for the result, the five models as pills, and the name-redaction visual. Warm **brown** palette (cream + espresso + terracotta), Georgia + Calibri (swap in PowerPoint if unavailable).
+- **`gender_bias_llm_hiring.pptx`** — the editable **PowerPoint** (11 slides), built to track the spoken script beat-by-beat. Nearly wordless: shape-drawn icons, a scales-of-fairness motif (level question → tilted answer), a raised/highlighted résumé for the result, the five models as pills, and the name-redaction visual. Warm **brown** palette (cream + espresso + terracotta) with **rose = female / denim = male** gender accents woven in, Georgia + Calibri (swap in PowerPoint if unavailable).
 - **`index.html`** — a self-contained animated web version of the deck.
 - **`summary.html`** — the written reading handout.
 - **`SCRIPT.md`** — timed narration.
