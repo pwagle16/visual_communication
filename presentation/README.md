@@ -4,6 +4,13 @@ A near-wordless, self-contained slide deck summarizing *Gender Bias in LLM
 Hiring Decisions: Evidence from a Japanese Context and Evaluation of
 Mitigation Strategies* (arXiv:2606.18649).
 
+## Files
+
+- **`gender_bias_llm_hiring.pptx`** — the editable **PowerPoint** (12 slides), built to track the spoken script beat-by-beat. Nearly wordless: shape-drawn icons, an effect-size bar chart, the name-redaction visual, pink = problem / blue = fix. Theme fonts: Century Gothic + Calibri (swap in PowerPoint if unavailable).
+- **`index.html`** — a self-contained animated web version of the deck.
+- **`summary.html`** — the written reading handout.
+- **`SCRIPT.md`** — timed narration.
+
 ## Open it
 
 Open `index.html` in any browser. No build step, no dependencies — one file.
